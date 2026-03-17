@@ -69,6 +69,36 @@
       white-space: nowrap;
     }
 
+    /* ─── ヘッダーナビ ───────────────────────────── */
+    .header-nav {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px 10px;
+      display: flex;
+    }
+
+    .header-nav a {
+      font-size: 12px;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .08em;
+      padding: 3px 10px 3px 0;
+      border-right: 1px solid rgba(255,255,255,.15);
+      margin-right: 10px;
+      transition: color .18s;
+    }
+
+    .header-nav a:last-child {
+      border-right: none;
+    }
+
+    .header-nav a:hover {
+      color: #fff;
+    }
+
+    .header-nav a.current {
+      color: #c2d9e8;
+    }
+
     /* ─── メイン ─────────────────────────────────── */
     .main-wrapper {
       max-width: 960px;
@@ -177,7 +207,8 @@
       padding: 2px 9px;
       border-radius: 20px;
       letter-spacing: .06em;
-      margin-bottom: 10px;
+      margin-right: 4px;
+      margin-bottom: 4px;
     }
 
     /* 説明文 */
@@ -406,9 +437,13 @@
   <!-- ヘッダー -->
   <header>
     <div class="header-inner">
-      <h1 class="site-title">歴史創作お役立ちツール集</a></h1>
+      <h1 class="site-title"><a href="index.html">歴史創作お役立ちツール集</a></h1>
       <span class="header-deco">REKISHI SOSAKU TOOLS</span>
     </div>
+    <nav class="header-nav">
+      <a href="index.html" class="current">ツール一覧</a>
+      <a href="about.html">このサイトについて</a>
+    </nav>
   </header>
 
   <!-- メイン -->
@@ -502,14 +537,21 @@
       tools.forEach(function(tool, i) {
         const card = document.createElement("div");
         card.className = "tool-card";
-        card.dataset.category = tool.category;
+        // 複数カテゴリ対応：配列をJSON文字列としてdata属性に保存
+        const cats = Array.isArray(tool.category) ? tool.category : [tool.category];
+        card.dataset.categories = JSON.stringify(cats);
         card.style.animationDelay = (i * 55) + "ms";
+
+        // カテゴリバッジ（複数対応）
+        const badgeHtml = cats.map(function(c) {
+          return '<span class="tool-card-category">' + c + '</span>';
+        }).join(" ");
 
         card.innerHTML =
           '<div class="tool-card-bar"></div>' +
           '<div class="tool-card-head">' +
             '<h2 class="tool-card-title"><a href="' + tool.url + '">' + tool.title + '</a></h2>' +
-            '<span class="tool-card-category">' + tool.category + '</span>' +
+            badgeHtml +
           '</div>' +
           '<div class="tool-card-body">' +
             '<p class="tool-card-desc">' + tool.desc + '</p>' +
@@ -537,7 +579,8 @@
         let visibleCount = 0;
 
         document.querySelectorAll(".tool-card").forEach(function(card) {
-          const match = (selected === "all") || (card.dataset.category === selected);
+          const cardCats = JSON.parse(card.dataset.categories);
+          const match = (selected === "all") || (cardCats.indexOf(selected) !== -1);
           if (match) {
             card.classList.remove("hidden");
             visibleCount++;
