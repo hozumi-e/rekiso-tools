@@ -469,7 +469,7 @@
     // =====================================================================
     // データ読み込み
     // =====================================================================
-    fetch("data/tools_data.json")
+    fetch("data/tools.json")
       .then(function(r) { return r.json(); })
       .then(function(tools) { init(tools); })
       .catch(function() {
