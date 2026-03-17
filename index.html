@@ -537,7 +537,7 @@
         let visibleCount = 0;
 
         document.querySelectorAll(".tool-card").forEach(function(card) {
-          const match = (selectedCat === "all") || (card.dataset.category === selectedCat);
+          const match = (selected === "all") || (card.dataset.category === selected);
           if (match) {
             card.classList.remove("hidden");
             visibleCount++;
