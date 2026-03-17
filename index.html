@@ -533,11 +533,11 @@
         });
         e.target.classList.add("active");
 
-        const selected = e.target.dataset.category;
+        const selected = e.target.dataset.category.includes(selectedCat);
         let visibleCount = 0;
 
         document.querySelectorAll(".tool-card").forEach(function(card) {
-          const match = selected === "all" || card.dataset.category === selected;
+          const match = selected === "all" || card.dataset.category.includes(selectedCat) === selected;
           if (match) {
             card.classList.remove("hidden");
             visibleCount++;
