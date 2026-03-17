@@ -38,21 +38,6 @@
       overflow: hidden;
     }
 
-    /* 背景の斜め装飾ライン */
-    header::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        -55deg,
-        transparent,
-        transparent 38px,
-        rgba(255,255,255,.025) 38px,
-        rgba(255,255,255,.025) 39px
-      );
-      pointer-events: none;
-    }
-
     .header-inner {
       position: relative;
       max-width: 960px;
@@ -493,11 +478,16 @@
       // ローディング文字を削除
       document.getElementById("loadingMsg").remove();
 
-      // カテゴリ一覧（重複なし・登場順）
-      const categories = tools.reduce(function(acc, t) {
-        if (acc.indexOf(t.category) === -1) acc.push(t.category);
+      // カテゴリ一覧
+      let categories = tools.reduce(function(acc, t) {
+        const toolCats = Array.isArray(t.category) ? t.category : [t.category];
+        toolCats.forEach(cat => {
+          if (acc.indexOf(cat) === -1) acc.push(cat);
+        });
         return acc;
       }, []);
+
+      categories.sort((a, b) => a === "その他" ? 1 : b === "その他" ? -1 : 0);
 
       // カテゴリボタンを追加
       categories.forEach(function(cat) {
