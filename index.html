@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>歴史創作お役立ちツール集</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+  <style>
+    /* ─── 変数 ─────────────────────────────────────── */
+    :root {
+      --navy:        #2c3e50;
+      --bg:          #fff;
+      --text:        #2e2c29;
+      --text-sub:    #7a7770;
+      --radius:      6px;
+      --shadow:      0 2px 12px rgba(44,62,80,.10);
+      --shadow-hover:0 8px 28px rgba(44,62,80,.18);
+    }
+
+    /* ─── リセット ───────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─── ページ全体 ─────────────────────────────── */
+    body {
+      font-family: "Zen Maru Gothic", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── ヘッダー ───────────────────────────────── */
+    header {
+      background: #1a2633;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 背景の斜め装飾ライン */
+    header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        -55deg,
+        transparent,
+        transparent 38px,
+        rgba(255,255,255,.025) 38px,
+        rgba(255,255,255,.025) 39px
+      );
+      pointer-events: none;
+    }
+
+    .header-inner {
+      position: relative;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 24px 22px;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .site-title {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-weight: 600;
+      font-size: clamp(22px, 4vw, 36px);
+      color: #fff;
+      letter-spacing: .12em;
+      line-height: 1.2;
+    }
+
+    .site-title a { color: inherit; }
+
+    .header-deco {
+      margin-left: 16px;
+      margin-bottom: 4px;
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 11px;
+      color: #c2d9e8;
+      letter-spacing: .18em;
+      opacity: .7;
+      white-space: nowrap;
+    }
+
+    /* ─── メイン ─────────────────────────────────── */
+    .main-wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* ─── カテゴリフィルター ─────────────────────── */
+    .category-filter {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid #dedad3;
+      color: var(--text-sub);
+      padding: 5px 15px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 20px;
+      letter-spacing: .05em;
+      transition: background .18s, color .18s, border-color .18s;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--navy);
+      color: var(--navy);
+    }
+
+    .filter-btn.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+    }
+
+    /* ─── ツールグリッド ─────────────────────────── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    }
+
+    /* ─── カード ─────────────────────────────────── */
+    .tool-card {
+      background: #faf9f6;
+      border: 1px solid #dedad3;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      margin: 0 10px 18px 0;
+      transition: box-shadow .22s, transform .22s;
+      animation: fadeUp .35s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tool-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-3px);
+    }
+
+    .tool-card.hidden { display: none; }
+
+    /* カード上部のカラーバー */
+    .tool-card-bar {
+      height: 3px;
+      background: linear-gradient(90deg, var(--navy), #7ca5bf);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    /* タイトル */
+    .tool-card-head {
+      padding: 14px 16px 0;
+    }
+
+    .tool-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .tool-card-title a {
+      color: var(--navy);
+      transition: color .18s;
+    }
+
+    .tool-card-title a:hover { color: #7ca5bf; }
+
+    /* カテゴリバッジ */
+    .tool-card-category {
+      display: inline-block;
+      font-size: 10px;
+      color: #7ca5bf;
+      border: 1px solid #c2d9e8;
+      background: rgba(124,165,191,.07);
+      padding: 2px 9px;
+      border-radius: 20px;
+      letter-spacing: .06em;
+      margin-bottom: 10px;
+    }
+
+    /* 説明文 */
+    .tool-card-body {
+      padding: 0 16px;
+      flex: 1;
+    }
+
+    .tool-card-desc {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.75;
+    }
+
+    /* フッター（日付＋情報ボタン） */
+    .tool-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px 13px;
+      margin-top: 10px;
+      border-top: 1px solid #dedad3;
+    }
+
+    .tool-card-dates {
+      font-size: 10px;
+      color: #aaa89f;
+      line-height: 1.7;
+    }
+
+    .tool-card-dates span {
+      display: block;
+    }
+
+    /* 情報ボタン */
+    .info-btn {
+      background: none;
+      border: 1px solid #dedad3;
+      border-radius: var(--radius);
+      color: var(--text-sub);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      padding: 4px 11px;
+      letter-spacing: .05em;
+      transition: background .18s, color .18s, border-color .18s;
+      white-space: nowrap;
+    }
+
+    .info-btn:hover {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+    }
+
+    /* ─── 空状態 ──────────────────────────────────── */
+    .no-results {
+      display: none;
+      color: var(--text-sub);
+      font-size: 13px;
+      padding: 24px 0;
+      text-align: center;
+    }
+    .no-results.visible { display: block; }
+
+    /* ─── モーダル ───────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,28,36,.55);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #faf9f6;
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      width: 100%;
+      max-width: 460px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: modalIn .2s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(.95) translateY(10px); }
+      to   { opacity: 1; transform: scale(1)   translateY(0); }
+    }
+
+    .modal-header {
+      background: var(--navy);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .04em;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.7);
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+      padding: 0 2px;
+      transition: color .15s;
+    }
+
+    .modal-close:hover { color: #fff; }
+
+    .modal-body {
+      padding: 18px 20px 22px;
+    }
+
+    .modal-meta {
+      display: flex;
+      font-size: 11px;
+      color: #aaa89f;
+      margin-bottom: 16px;
+    }
+
+    .modal-meta-item {
+      margin-right: 18px;
+    }
+
+    .modal-meta-label {
+      display: block;
+      font-size: 10px;
+      color: #aaa89f;
+      letter-spacing: .06em;
+      margin-bottom: 2px;
+    }
+
+    .modal-meta-value {
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+
+    .modal-history-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: .08em;
+      border-bottom: 1px solid #dedad3;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    .history-list {
+      list-style: none;
+    }
+
+    .history-list li {
+      display: flex;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--bg);
+      color: var(--text-sub);
+    }
+
+    .history-list li:last-child { border-bottom: none; }
+
+    .history-date {
+      font-size: 11px;
+      color: #aaa89f;
+      min-width: 90px;
+      margin-right: 10px;
+      padding-top: 1px;
+    }
+
+    .history-list li:first-child .history-note {
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    /* ─── フッター ───────────────────────────────── */
+    footer {
+      background: #1a2633;
+      color: rgba(255,255,255,.35);
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: .08em;
+      padding: 16px 0;
+    }
+
+    /* ─── ローディング ───────────────────────────── */
+    .loading {
+      text-align: center;
+      color: #aaa89f;
+      font-size: 13px;
+      padding: 40px 0;
+    }
+
+    /* ─── レスポンシブ ───────────────────────────── */
+    @media (max-width: 600px) {
+      .header-inner { padding: 20px 16px 16px; }
+      .header-deco  { display: none; }
+      .main-wrapper { padding: 20px 12px 48px; }
+      .tools-grid   { grid-template-columns: 1fr; }
+      .tool-card    { margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header>
+    <div class="header-inner">
+      <h1 class="site-title">歴史創作お役立ちツール集</a></h1>
+      <span class="header-deco">REKISHI SOSAKU TOOLS</span>
+    </div>
+  </header>
+
+  <!-- メイン -->
+  <div class="main-wrapper">
+
+    <!-- カテゴリフィルター -->
+    <div class="category-filter" id="categoryFilter">
+      <button class="filter-btn active" data-category="all">すべて</button>
+    </div>
+
+    <!-- ツールグリッド -->
+    <div class="tools-grid" id="toolsGrid">
+      <p class="loading" id="loadingMsg">読み込み中…</p>
+    </div>
+
+    <p class="no-results" id="noResults">該当するツールが見つかりません。</p>
+
+  </div>
+
+  <!-- フッター -->
+  <!--<footer>&copy; 歴史創作お役立ちツール集</footer>-->
+
+  <!-- モーダル -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle"></span>
+        <button class="modal-close" id="modalClose" aria-label="閉じる">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-meta">
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">公開日</span>
+            <span class="modal-meta-value" id="modalPublished"></span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">最終更新</span>
+            <span class="modal-meta-value" id="modalUpdated"></span>
+          </div>
+        </div>
+        <p class="modal-history-title">UPDATE HISTORY</p>
+        <ul class="history-list" id="modalHistory"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =====================================================================
+    // データ読み込み
+    // =====================================================================
+    fetch("data/tools_data.json")
+      .then(function(r) { return r.json(); })
+      .then(function(tools) { init(tools); })
+      .catch(function() {
+        document.getElementById("loadingMsg").textContent =
+          "データの読み込みに失敗しました。data/tools.json を確認してください。";
+      });
+
+    // =====================================================================
+    // 初期化
+    // =====================================================================
+    function init(tools) {
+      const grid       = document.getElementById("toolsGrid");
+      const filterArea = document.getElementById("categoryFilter");
+      const noResults  = document.getElementById("noResults");
+
+      // ローディング文字を削除
+      document.getElementById("loadingMsg").remove();
+
+      // カテゴリ一覧（重複なし・登場順）
+      const categories = tools.reduce(function(acc, t) {
+        if (acc.indexOf(t.category) === -1) acc.push(t.category);
+        return acc;
+      }, []);
+
+      // カテゴリボタンを追加
+      categories.forEach(function(cat) {
+        const btn = document.createElement("button");
+        btn.className = "filter-btn";
+        btn.dataset.category = cat;
+        btn.textContent = cat;
+        filterArea.appendChild(btn);
+      });
+
+      // カードを描画
+      tools.forEach(function(tool, i) {
+        const card = document.createElement("div");
+        card.className = "tool-card";
+        card.dataset.category = tool.category;
+        card.style.animationDelay = (i * 55) + "ms";
+
+        card.innerHTML =
+          '<div class="tool-card-bar"></div>' +
+          '<div class="tool-card-head">' +
+            '<h2 class="tool-card-title"><a href="' + tool.url + '">' + tool.title + '</a></h2>' +
+            '<span class="tool-card-category">' + tool.category + '</span>' +
+          '</div>' +
+          '<div class="tool-card-body">' +
+            '<p class="tool-card-desc">' + tool.desc + '</p>' +
+          '</div>' +
+          '<div class="tool-card-footer">' +
+            '<div class="tool-card-dates">' +
+              '<span>公開：' + tool.published + '</span>' +
+              '<span>更新：' + tool.updated + '</span>' +
+            '</div>' +
+            '<button class="info-btn" data-index="' + i + '">更新履歴</button>' +
+          '</div>';
+
+        grid.appendChild(card);
+      });
+
+      // ─── フィルター処理 ───────────────────────────
+      filterArea.addEventListener("click", function(e) {
+        if (!e.target.matches(".filter-btn")) return;
+        document.querySelectorAll(".filter-btn").forEach(function(b) {
+          b.classList.remove("active");
+        });
+        e.target.classList.add("active");
+
+        const selected = e.target.dataset.category;
+        let visibleCount = 0;
+
+        document.querySelectorAll(".tool-card").forEach(function(card) {
+          const match = selected === "all" || card.dataset.category === selected;
+          if (match) {
+            card.classList.remove("hidden");
+            visibleCount++;
+          } else {
+            card.classList.add("hidden");
+          }
+        });
+
+        noResults.classList.toggle("visible", visibleCount === 0);
+      });
+
+      // ─── モーダル処理 ─────────────────────────────
+      const overlay    = document.getElementById("modalOverlay");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalPub   = document.getElementById("modalPublished");
+      const modalUpd   = document.getElementById("modalUpdated");
+      const modalHist  = document.getElementById("modalHistory");
+
+      // 情報ボタンクリック（グリッド全体に委譲）
+      grid.addEventListener("click", function(e) {
+        if (!e.target.matches(".info-btn")) return;
+        const tool = tools[e.target.dataset.index];
+
+        modalTitle.textContent   = tool.title;
+        modalPub.textContent     = tool.published;
+        modalUpd.textContent     = tool.updated;
+        modalHist.innerHTML      = "";
+
+        tool.history.forEach(function(item) {
+          const li = document.createElement("li");
+          li.innerHTML =
+            '<span class="history-date">' + item.date + '</span>' +
+            '<span class="history-note">' + item.note + '</span>';
+          modalHist.appendChild(li);
+        });
+
+        overlay.classList.add("open");
+        document.body.style.overflow = "hidden";
+      });
+
+      // 閉じる
+      function closeModal() {
+        overlay.classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      document.getElementById("modalClose").addEventListener("click", closeModal);
+
+      overlay.addEventListener("click", function(e) {
+        if (e.target === overlay) closeModal();
+      });
+
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") closeModal();
+      });
+    }
+  </script>
+
+</body>
+</html>
