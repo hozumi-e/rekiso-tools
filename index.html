@@ -533,11 +533,11 @@
         });
         e.target.classList.add("active");
 
-        const selected = e.target.dataset.category.includes(selectedCat);
+        const selected = e.target.dataset.category;
         let visibleCount = 0;
 
         document.querySelectorAll(".tool-card").forEach(function(card) {
-          const match = selected === "all" || card.dataset.category.includes(selectedCat) === selected;
+          const match = (selectedCat === "all") || (card.dataset.category === selectedCat);
           if (match) {
             card.classList.remove("hidden");
             visibleCount++;
@@ -546,7 +546,12 @@
           }
         });
 
-        noResults.classList.toggle("visible", visibleCount === 0);
+        const noResults = document.getElementById("noResults");
+        if (visibleCount === 0) {
+          noResults.classList.add("visible");
+        } else {
+          noResults.classList.remove("visible");
+        }
       });
 
       // ─── モーダル処理 ─────────────────────────────
