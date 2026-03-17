@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>歴史創作お役立ちツール集</title>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+  <script src="data/tools.js"></script>
   <style>
     /* ─── 変数 ─────────────────────────────────────── */
     :root {
@@ -93,10 +94,6 @@
 
     .header-nav a:hover {
       color: #fff;
-    }
-
-    .header-nav a.current {
-      color: #c2d9e8;
     }
 
     /* ─── メイン ─────────────────────────────────── */
@@ -441,7 +438,6 @@
       <span class="header-deco">REKISHI SOSAKU TOOLS</span>
     </div>
     <nav class="header-nav">
-      <a href="index.html" class="current">ツール一覧</a>
       <a href="about.html">このサイトについて</a>
     </nav>
   </header>
@@ -494,13 +490,7 @@
     // =====================================================================
     // データ読み込み
     // =====================================================================
-    fetch("data/tools.json")
-      .then(function(r) { return r.json(); })
-      .then(function(tools) { init(tools); })
-      .catch(function() {
-        document.getElementById("loadingMsg").textContent =
-          "データの読み込みに失敗しました。data/tools.json を確認してください。";
-      });
+    init(TOOLS_DATA);
 
     // =====================================================================
     // 初期化
