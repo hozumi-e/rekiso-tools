@@ -489,20 +489,13 @@
     // =====================================================================
     // データ読み込み
     // =====================================================================
-    const url = 'https://raw.githubusercontent.com/hozumi-e/rekiso-tools/refs/heads/main/data/tools.json';
-
-    async function loadData() {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('読み込み失敗');
-        const data = await response.json();
-        console.log(data); 
-      } catch (error) {
-        console.error('エラー:', error);
-      }
-    }
-
-    loadData();
+    fetch("data/tools.json")
+      .then(function(r) { return r.json(); })
+      .then(function(tools) { init(tools); })
+      .catch(function() {
+        document.getElementById("loadingMsg").textContent =
+          "データの読み込みに失敗しました。";
+      });
 
     // =====================================================================
     // 初期化
