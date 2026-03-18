@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>歴史創作お役立ちツール集</title>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
-  <script src="data/tools.js"></script>
   <style>
     /* ─── 変数 ─────────────────────────────────────── */
     :root {
@@ -490,7 +489,20 @@
     // =====================================================================
     // データ読み込み
     // =====================================================================
-    init(TOOLS_DATA);
+    const url = 'https://raw.githubusercontent.com/hozumi-e/rekiso-tools/data/tools.json';
+
+    async function loadData() {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('読み込み失敗');
+        const data = await response.json();
+        console.log(data); 
+      } catch (error) {
+        console.error('エラー:', error);
+      }
+    }
+
+    loadData();
 
     // =====================================================================
     // 初期化
