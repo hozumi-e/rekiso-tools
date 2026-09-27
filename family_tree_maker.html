@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>家系図作成ツール</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Mincho" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+Marker+Gothic" rel="stylesheet">
+    <link rel="stylesheet" href="../header.css">
+    <style>
+        :root { --bg-color: #ffffff; }
+        *, *::before, *::after { box-sizing: border-box; }
+
+      body {
+      font-family: "Zen Maru Gothic", sans-serif;
+      min-height: 100vh;
+    }
+
+        container {
+            background: #f5f5f5;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            color: #1a1a1a;
+            font-size: 13px;
+        }
+
+        /* ===== TOOLBAR ===== */
+        #toolbar {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        #toolbar-main {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 6px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        #toolbar-advanced { background: #111; }
+        #toolbar-advanced summary {
+            padding: 4px 14px;
+            cursor: pointer;
+            font-size: 11px;
+            color: #aaa;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+        }
+
+        #toolbar-advanced summary:hover { color: #fff; }
+        #advanced-inner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 7px 14px 9px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .tb-sep {
+            display: inline-block;
+            width: 1px;
+            height: 20px;
+            background: rgba(255,255,255,0.18);
+            margin: 0 8px;
+            vertical-align: middle;
+        }
+        .tb-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.65);
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+        .tb-group {
+            display: inline-flex;
+            align-items: center;
+        }
+        .tb-group > * { margin-right: 4px; }
+        .tb-group > *:last-child { margin-right: 0; }
+
+        input[type="color"] {
+            width: 28px; height: 22px;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0; cursor: pointer;
+            background: none; border-radius: 3px;
+            vertical-align: middle;
+        }
+        #toolbar select,
+        #toolbar input[type="number"],
+        #toolbar input[type="text"] {
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 3px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: inherit;
+        }
+        #toolbar select option { background: #222; color: #fff; }
+        #toolbar input[type="number"] { width: 50px; }
+        #toolbar input[type="text"]::placeholder { color: rgba(255,255,255,0.35); }
+
+        .tb-btn {
+            cursor: pointer;
+            padding: 4px 10px;
+            font-family: inherit;
+            font-size: 12px;
+            border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            white-space: nowrap;
+            transition: background 0.12s;
+        }
+        .tb-btn:hover { background: rgba(255,255,255,0.2); }
+        .tb-btn.accent {
+            background: #fff; color: #1a1a1a;
+            border-color: #ccc; font-weight: bold;
+        }
+        .tb-btn.accent:hover { background: #e0e0e0; }
+        .tb-btn.help-btn {
+            width: 22px; height: 22px;
+            padding: 0; border-radius: 50%;
+            text-align: center; line-height: 20px;
+            font-weight: bold; font-size: 12px;
+        }
+        .tb-right {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+        }
+        .tb-right > * { margin-left: 5px; }
+
+        #search-input { width: 120px; }
+        #search-count {
+            font-size: 11px; color: rgba(255,255,255,0.55);
+            min-width: 34px; text-align: center; display: inline-block;
+        }
+        #zoom-slider { width: 75px; accent-color: #999; vertical-align: middle; }
+        #zoom-label {
+            font-size: 11px; color: rgba(255,255,255,0.7);
+            min-width: 36px; text-align: right; display: inline-block;
+        }
+
+        /* ===== CANVAS ===== */
+        #canvas-container {
+            overflow: auto; flex-grow: 1;
+            background: var(--bg-color); position: relative;
+            cursor: grab;
+        }
+        #canvas-container.dragging { cursor: grabbing; }
+        #canvas-wrapper { transform-origin: top left; display: inline-block; }
+        svg { background: var(--bg-color); display: block; }
+
+        /* SVG要素 — stroke系はすべてJSのinline attributeで設定するためCSSに書かない */
+        text { shape-rendering: crispEdges; -webkit-font-smoothing: antialiased; cursor: pointer; }
+        .node rect { cursor: pointer; }
+        .node .memo  { font-size: 11px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; }
+        .node .name  { font-size: 16px; text-anchor: middle; dominant-baseline: middle; }
+        .node .years { font-size: 10px; text-anchor: middle; dominant-baseline: middle; }
+        .link { fill: none; shape-rendering: crispEdges; }
+
+        /* ===== MODAL BASE ===== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 150;
+        }
+        .modal-wrap {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            justify-content: center; align-items: center; z-index: 200;
+        }
+        .modal-box {
+            background: #fff; border: 1px solid #bbb; border-radius: 6px;
+            padding: 20px 22px 16px; width: 90%; max-width: 340px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+        }
+        .modal-box midashi {
+            margin-bottom: 12px; font-size: 14px; color: #111;
+            border-bottom: 1px solid #ddd; padding-bottom: 8px;
+        }
+        .modal-field { display: flex; flex-direction: column; margin-bottom: 7px; }
+        .modal-field label { font-size: 11px; color: #777; margin-bottom: 2px; }
+        .modal-field input,
+        .modal-field select {
+            border: 1px solid #ccc; background: #fafafa; color: #111;
+            padding: 5px 7px; border-radius: 4px; font-size: 13px;
+            font-family: inherit; width: 100%;
+        }
+        .modal-field input:focus,
+        .modal-field select:focus { outline: none; border-color: #888; background: #fff; }
+        .modal-divider { border: none; border-top: 1px solid #e0e0e0; margin: 9px 0; }
+        .modal-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 5px; }
+        .modal-row > * { margin-right: 5px; margin-bottom: 4px; }
+        .modal-row > *:last-child { margin-right: 0; }
+        .m-btn {
+            cursor: pointer; padding: 5px 10px; font-size: 12px;
+            font-family: inherit; border-radius: 4px; border: 1px solid #ccc;
+            background: #f4f4f4; color: #1a1a1a; transition: background 0.1s;
+        }
+        .m-btn:hover { background: #e0e0e0; }
+        .m-btn.danger  { color: #b00; border-color: #e0b0b0; background: #fff5f5; }
+        .m-btn.danger:hover { background: #ffe0e0; }
+        .m-btn.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+        .m-btn.primary:hover { background: #444; }
+        .m-btn.ml-auto { margin-left: auto; }
+
+        /* ===== HELP ===== */
+        #help-overlay {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.4); z-index:1000;
+        }
+        #help-wrapper {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            justify-content: center; align-items: center; z-index:1001; pointer-events:none;
+        }
+        #help-window {
+            background: #fff; border: 1px solid #bbb; border-radius: 6px;
+            padding: 20px 22px; width: 90%; max-width: 460px;
+            pointer-events: auto; box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+        }
+        #help-window midashi {
+            margin-bottom: 9px; color: #111; font-size: 14px;
+            border-bottom: 1px solid #ddd; padding-bottom: 7px;
+        }
+
+        /* ===== 親追加インラインフォーム ===== */
+        #add-parent-form { display: none; margin-top: 6px; }
+        #add-parent-form .modal-field { margin-bottom: 5px; }
+
+#highlight-layer {
+    transition: opacity 0.4s ease-out; 
+    opacity: 1;
+}
+.fade-out {
+    opacity: 0 !important;
+}
+
+.color-wrap { display:inline-flex; align-items:center; }
+.color-wrap input[type="text"] {
+    width:68px; font-size:11px; padding:2px 4px;
+    border:1px solid #ccc; border-radius:3px;
+    background:#fafafa; color:#111; display: none;
+}
+
+    </style>
+</head>
+<script src="../header.js" data-curent="index"></script>
+<body>
+
+<div id="site-header"></div>
+<container>
+<div id="toolbar">
+
+    <!-- ── メインバー（常時表示） ── -->
+    <div id="toolbar-main">
+
+        <div class="tb-group">
+            <span class="tb-label">描画モード</span>
+            <input type="checkbox" id="paint-mode" title="ONにしてボックスをクリックで色変更">
+            <span class="color-wrap">
+                <input type="color" id="paint-color" value="#ffffff" title="塗り色" oninput="syncColorText(this)">
+                <input type="text"  id="paint-color-text" value="#ffffff" maxlength="7" oninput="syncColorPicker(this)" style="display:none;">
+            </span>
+        </div>
+
+        <span class="tb-sep"></span>
+
+        <div class="tb-group">
+            <span class="tb-label">姓の一括指定</span>
+            <input type="text" id="surname-input" style="width:80px" placeholder="姓を入力">
+            <button class="tb-btn" onclick="applySurname(true)">追加</button>
+            <button class="tb-btn" onclick="applySurname(false)">削除</button>
+        </div>
+
+        <span class="tb-sep"></span>
+
+        <div class="tb-group">
+            <input type="text" id="search-input" placeholder="🔍" onkeydown="onSearchKey(event)">
+            <button class="tb-btn" onclick="execSearch()">検索</button>
+            <span id="search-count"></span>
+        </div>
+
+        <span class="tb-sep"></span>
+
+        <div class="tb-group">
+            <span class="tb-label">ズーム</span>
+            <input type="range" id="zoom-slider" min="20" max="200" value="100" oninput="updateZoom()">
+            <span id="zoom-label">100%</span>
+        </div>
+
+        <div class="tb-right">
+            <button class="tb-btn help-btn" onclick="openHelp()">?</button>
+            <button class="tb-btn" onclick="exportJSON()">JSON保存</button>
+            <input type="file" id="file-input" style="display:none" onchange="importJSON(event)">
+            <button class="tb-btn" onclick="document.getElementById('file-input').click()">読込</button>
+            <button class="tb-btn accent" onclick="openExportModal()">画像保存</button>
+        </div>
+    </div>
+
+    <!-- ── 詳細設定（折りたたみ） ── -->
+    <details id="toolbar-advanced">
+        <summary><b>詳細設定</b></summary>
+        <div id="advanced-inner">
+
+            <div class="tb-group">
+                <span class="tb-label">背景</span>
+                <span class="color-wrap">
+                    <input type="color" id="bg-color-picker" value="#ffffff" oninput="syncColorText(this)">
+                    <input type="text"  id="bg-color-picker-text"   value="#ffffff" maxlength="7" oninput="syncColorPicker(this)">
+                </span>
+            </div>
+            <span class="tb-sep"></span>
+
+            <div class="tb-group">
+                <span class="tb-label">フォント</span>
+                <select id="font-family" onchange="updateSettings()">
+                    <option value="'Noto Sans JP',sans-serif">Noto Sans JP</option>
+                    <option value="'Noto Sans TC',sans-serif">Noto Sans TC</option>
+                    <option value="'Noto Serif JP',serif">Noto Serif JP</option>
+                    <option value="'M PLUS 1p',sans-serif">M PLUS 1p</option>
+                    <option value="'Zen Maru Gothic',sans-serif">Zen Maru Gothic</option>
+                    <option value="'Zen Kaku Gothic New',sans-serif">Zen Kaku Gothic New</option>
+                    <option value="'Sawarabi Mincho',serif">さわらび明朝</option>
+                    <option value="'Shippori Mincho',serif">しっぽり明朝</option>
+                    <option value="'DotGothic16',sans-serif">DotGothic16</option>
+                    <option value="'LXGW Marker Gothic',sans-serif">LXGW Marker Gothic</option>
+                </select>
+            </div>
+            <span class="tb-sep"></span>
+
+            <div class="tb-group">
+                <span class="tb-label">幅</span>
+                <input type="number" id="node-w" value="100" onchange="updateSettings()">
+                <span class="tb-label">高</span>
+                <input type="number" id="node-h" value="60" onchange="updateSettings()">
+                <span class="tb-label">角</span>
+                <input type="range" id="node-radius" min="0" max="50" value="0" style="width:100px;" oninput="updateSettings()">
+            </div>
+            <span class="tb-sep"></span>
+
+            <div class="tb-group">
+                <span class="tb-label">線色</span>
+                <span class="color-wrap">
+                    <input type="color" id="link-color"      value="#000000" oninput="syncColorText(this)">
+                    <input type="text"  id="link-color-text" value="#000000" maxlength="7" oninput="syncColorPicker(this)">
+                </span>
+                <span class="tb-label">線幅</span>
+                <input type="number" id="link-width" value="1.2" step="0.1" min="0.5" max="10" style="width:50px" onchange="updateSettings()">
+            </div>
+            <span class="tb-sep"></span>
+
+            <div class="tb-group">
+                <span class="tb-label">文字色 メモ(大)</span>
+                <span class="color-wrap">
+                    <input type="color" id="color-memo"      value="#000000" oninput="syncColorText(this)">
+                    <input type="text"  id="color-memo-text" value="#000000" maxlength="7" oninput="syncColorPicker(this)">
+                </span>
+                <span class="tb-label">名前</span>
+                <span class="color-wrap">
+                    <input type="color" id="color-name"      value="#000000" oninput="syncColorText(this)">
+                    <input type="text"  id="color-name-text" value="#000000" maxlength="7" oninput="syncColorPicker(this)">
+                </span>
+                <span class="tb-label">メモ(小)</span>
+                <span class="color-wrap">
+                    <input type="color" id="color-years"      value="#000000" oninput="syncColorText(this)">
+                    <input type="text"  id="color-years-text" value="#000000" maxlength="7" oninput="syncColorPicker(this)">
+                </span>
+            </div>
+            <span class="tb-sep"></span>
+
+            <div class="tb-group">
+                <span class="tb-label">間隔 横</span>
+                <input type="number" id="gap-x" value="40" style="width:50px" onchange="updateSettings()">
+                <span class="tb-label">縦</span>
+                <input type="number" id="gap-y" value="70" style="width:50px" onchange="updateSettings()">
+            </div>
+
+<span class="tb-sep"></span>
+<div class="tb-group">
+    <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="checkbox" id="color-code-mode" onchange="toggleColorMode()">
+        カラーコード入力
+    </label>
+</div>
+
+        </div>
+    </details>
+</div>
+
+<!-- Help -->
+<div id="help-overlay" onclick="closeHelp()"></div>
+<div id="help-wrapper" onclick="closeHelp()">
+    <div id="help-window" onclick="event.stopPropagation()">
+        <midashi>使い方</midashi>
+        <div style="margin-top:10px; font-size:13px; line-height:1.8; max-height:65vh; overflow-y:auto; padding-right:4px; color:#333;">
+            <p><b>■ 基本操作</b><br>
+            人物ボックスのクリックで情報の編集・親子の追加ができます。</p>
+            <p><b>■ 人物の編集</b><br>
+            名前の上下に文字を追加できます。上側の文字列は太字になります。<br>
+            線の種類、左右の移動ができます。</p>
+            <p><b>■ 親子の追加</b><br>
+            名前の入力→追加ボタンで追加されます。<br>
+            兄弟は、「、」「，」スペースで区切るとまとめて入力できます。</p>
+            <p><b>■ 描画モード</b><br>
+            チェックをONにして人物ボックスをクリックすると色を変えられます。</p>
+            <p><b>■ 姓の一括指定</b><br>
+            姓を一括で追加・削除できます。<br>
+            例：「曹操、丕」に対して<br>
+            　　　「曹」を追加→「曹操、曹丕」<br>
+            　　　「曹」を削除→「操、丕」</p>
+            <p><b>■ 詳細設定</b><br>
+            家系図全体のデザインをある程度変更できます。</p>
+            <p><b>■ 保存</b><br>
+            JSONで保存/読み込みができます。<br>
+            SVG・PNGで書き出しができます。<br>
+            名前のフォントサイズを指定し、それをもとにリサイズされます。<br>
+            JSONには書き出し設定も保存されるので、複数回書き出す場合はテンプレートのファイルを作るなどすると楽かもしれません。</p>
+        </div>
+        <div style="margin-top:12px; text-align:right;">
+            <button class="m-btn primary" onclick="closeHelp()">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- Canvas -->
+<div id="canvas-container">
+    <div id="canvas-wrapper">
+        <svg id="svg-canvas">
+            <g id="links-layer"></g>
+            <g id="nodes-layer"></g>
+            <g id="highlight-layer"></g>
+        </svg>
+    </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="overlay" style="display:none;" onclick="closeModal()"></div>
+<div id="modal-wrapper" class="modal-wrap" onclick="closeModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <midashi>人物編集</midashi>
+
+        <div class="modal-field" style="margin-top:10px; ">
+            <label>メモ（大）— 廟号・諡号など</label>
+            <input type="text" id="edit-memo" placeholder="例: 太祖">
+        </div>
+        <div class="modal-field">
+            <label>名前</label>
+            <input type="text" id="edit-name" placeholder="名前を入力">
+        </div>
+        <div class="modal-field">
+            <label>メモ（小）— 生没年など</label>
+            <input type="text" id="edit-years" placeholder="例: 155–220">
+        </div>
+        <div class="modal-field">
+            <label>線の種類</label>
+            <select id="edit-line-style">
+                <option value="normal">実線</option>
+                <option value="dashed">破線</option>
+            </select>
+        </div>
+
+        <hr class="modal-divider">
+
+        <div class="modal-row">
+            <button class="m-btn" onclick="moveOrder(-1)">← 左へ</button>
+            <button class="m-btn" onclick="moveOrder(1)">右へ →</button>
+        </div>
+
+        <hr class="modal-divider">
+
+        <div class="modal-field">
+            <label>子を一括追加（「、」「，」スペースで区切られます）</label>
+            <input type="text" id="batch-names" placeholder="曹丕、曹彰、曹植">
+        </div>
+        <button class="m-btn primary" onclick="execAddChildren()" style="width:100%; margin-bottom:4px;">子を追加</button>
+
+        <hr class="modal-divider">
+
+        <div class="modal-row">
+            <button class="m-btn danger" id="delete-one-btn" onclick="execDelete()">この人物を削除</button>
+            <button class="m-btn" id="add-parent-btn" onclick="toggleAddParentForm()">親を追加</button>
+            <button class="m-btn ml-auto" onclick="closeModal()">閉じる</button>
+        </div>
+
+        <!-- 親追加インラインフォーム -->
+        <div id="add-parent-form">
+            <div class="modal-field" style="margin-top:6px;">
+                <input type="text" id="new-parent-name" placeholder="名前を入力">
+            </div>
+            <div class="modal-row">
+                <button class="m-btn primary" onclick="execAddParent()">追加</button>
+                <button class="m-btn" onclick="hideAddParentForm()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal-overlay" id="export-overlay" style="display:none;" onclick="closeExportModal()"></div>
+<div id="export-modal-wrapper" class="modal-wrap" onclick="closeExportModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <midashi>書き出し設定</midashi>
+        <div class="modal-field" style="margin-top:10px; ">
+            <label>ファイル形式</label>
+            <select id="export-format" onchange="config.exportFormat=this.value; updateExportInfo();">
+                <option value="svg">SVG</option>
+                <option value="png" selected>PNG</option>
+            </select>
+        </div>
+        <div id="png-options">
+            <div class="modal-field">
+                <label>DPI</label>
+                <select id="export-dpi" onchange="config.exportDpi=this.value; updateExportInfo();">
+                    <option value="72">72 dpi</option>
+                    <option value="96">96 dpi</option>
+                    <option value="150">150 dpi</option>
+                    <option value="300">300 dpi</option>
+                    <option value="350" selected>350 dpi</option>
+                    <option value="600">600 dpi</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label>フォントサイズ（名前）</label>
+            <div style="display:flex; align-items:center;">
+                <input type="number" id="export-font-size" value="12" min="1" max="200" style="width:70px; margin-right:6px;" oninput="config.exportFontSize=this.value; updateExportInfo();">
+                <select id="export-font-unit" onchange="config.exportFontUnit=this.value; updateExportInfo();">
+                    <option value="pt">Pt（ポイント）</option>
+                    <option value="q">Q（級）</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label>余白 (mm)</label>
+            <input type="number" id="export-padding" value="10" min="0" max="100" style="width:70px;" oninput="config.exportPadding=this.value; updateExportInfo();">
+        </div>
+        <div id="export-info" style="font-size:11px; color:#888; margin-bottom:8px; line-height:1.7;"></div>
+        <div class="modal-row">
+            <button class="m-btn" onclick="closeExportModal()">キャンセル</button>
+            <button class="m-btn primary" onclick="saveAsImage()">保存</button>
+        </div>
+    </div>
+</div>
+</container>
+
+<script>
+    // ========== STATE ==========
+    let treeData = [{ id: "r1", name: "名前", memo: "", years: "", children: [], color: "#ffffff", lineStyle: "normal" }];
+    let selectedId = null;
+    let config = {
+        nodeW: 100, nodeH: 60,
+        font: "Noto Sans JP",
+        radius: 0,
+        linkColor: "#000000",
+        linkWidth: 1.2,
+        colorMemo:  "#000000",
+        colorName:  "#000000",
+        colorYears: "#000000",
+        gapX: 40,
+        gapY: 70,
+        bgColor: "#ffffff",
+    // --- 追加：書き出し設定のデフォルト値 ---
+        exportFormat: "png",
+        exportDpi: "300",
+        exportFontSize: 12,
+        exportFontUnit: "pt",
+        exportPadding: 10
+    };
+
+    let searchResults = [];
+    let searchIndex   = 0;
+    let zoomLevel     = 1.0;
+
+    // ========== SETTINGS ==========
+    function updateSettings() {
+        config.bgColor    = document.getElementById('bg-color-picker').value;
+        config.nodeW      = parseInt(document.getElementById('node-w').value)    || 100;
+        config.nodeH      = parseInt(document.getElementById('node-h').value)    || 60;
+        config.font       = document.getElementById('font-family').value;
+        config.radius     = document.getElementById('node-radius').value;
+        config.linkColor  = document.getElementById('link-color').value;
+        config.linkWidth  = parseFloat(document.getElementById('link-width').value) || 1.2;
+        config.colorMemo  = document.getElementById('color-memo').value;
+        config.colorName  = document.getElementById('color-name').value;
+        config.colorYears = document.getElementById('color-years').value;
+        config.gapX       = parseInt(document.getElementById('gap-x').value)     || 40;
+        config.gapY       = parseInt(document.getElementById('gap-y').value)     || 70;
+        document.documentElement.style.setProperty('--bg-color', config.bgColor);
+        render();
+    }
+
+    function syncUIFromConfig() {
+        document.getElementById('bg-color-picker').value = config.bgColor    || '#ffffff';
+        document.getElementById('bg-color-picker-text').value   = config.bgColor    || '#ffffff';
+        document.getElementById('node-w').value          = config.nodeW;
+        document.getElementById('node-h').value          = config.nodeH;
+        document.getElementById('font-family').value     = config.font       || 'Noto Sans JP';
+        document.getElementById('node-radius').value     = config.radius;
+        document.getElementById('link-color').value      = config.linkColor  || '#000000';
+        document.getElementById('link-color-text').value = config.linkColor  || '#000000';
+        document.getElementById('link-width').value      = config.linkWidth  || 1.2;
+        document.getElementById('color-memo').value      = config.colorMemo  || '#000000';
+        document.getElementById('color-memo-text').value = config.colorMemo  || '#000000';
+        document.getElementById('color-name').value      = config.colorName  || '#000000';
+        document.getElementById('color-name-text').value = config.colorName  || '#000000';
+        document.getElementById('color-years').value      = config.colorYears || '#000000';
+        document.getElementById('color-years-text').value = config.colorYears || '#000000';
+        document.getElementById('gap-x').value           = config.gapX       || 40;
+        document.getElementById('gap-y').value           = config.gapY       || 70;
+        // --- 追加：書き出しモーダルのUI同期 ---
+        if(config.exportFormat)   document.getElementById('export-format').value    = config.exportFormat;
+        if(config.exportDpi)      document.getElementById('export-dpi').value       = config.exportDpi;
+        if(config.exportFontSize) document.getElementById('export-font-size').value = config.exportFontSize;
+        if(config.exportFontUnit) document.getElementById('export-font-unit').value = config.exportFontUnit;
+        if(config.exportPadding)  document.getElementById('export-padding').value  = config.exportPadding;
+        document.documentElement.style.setProperty('--bg-color', config.bgColor || '#ffffff');
+    }
+
+    // ========== ZOOM ==========
+    function updateZoom() {
+        const v = parseInt(document.getElementById('zoom-slider').value);
+        zoomLevel = v / 100;
+        document.getElementById('zoom-label').textContent = v + '%';
+        document.getElementById('canvas-wrapper').style.transform = 'scale(' + zoomLevel + ')';
+    }
+
+    // ========== LAYOUT ==========
+    function calculatePositions(nodeId, depth, startX) {
+        const node = treeData.find(n => n.id === nodeId);
+        if (!node) return 0;
+        node.y = depth * (config.nodeH + config.gapY) + 50;
+        if (node.children.length === 0) { node.x = startX; return config.nodeW; }
+        let currentX = startX;
+        let totalWidth = 0;
+        node.children.forEach((cid, i) => {
+            const w = calculatePositions(cid, depth + 1, currentX);
+            totalWidth += w;
+            if (i < node.children.length - 1) {
+                totalWidth += config.gapX;
+                currentX   += w + config.gapX;
+            }
+        });
+        const first = treeData.find(n => n.id === node.children[0]);
+        const last  = treeData.find(n => n.id === node.children[node.children.length - 1]);
+        node.x = first.x + (last.x + config.nodeW - first.x) / 2 - config.nodeW / 2;
+        return Math.max(totalWidth, config.nodeW);
+    }
+
+    // ========== RENDER ==========
+    function getFontVal() {
+        return (config.font === 'inherit')
+            ? "'Noto Sans JP','MS Gothic',sans-serif"
+            : config.font;
+    }
+
+    function render() {
+        const allChildren = new Set(treeData.flatMap(d => d.children));
+        const roots = treeData.filter(d => !allChildren.has(d.id));
+        let startX = 50;
+        roots.forEach(r => { startX += calculatePositions(r.id, 0, startX) + 100; });
+
+        const nodesLayer     = document.getElementById('nodes-layer');
+        const linksLayer     = document.getElementById('links-layer');
+        const highlightLayer = document.getElementById('highlight-layer');
+        nodesLayer.innerHTML     = '';
+        linksLayer.innerHTML     = '';
+        highlightLayer.innerHTML = '';
+
+        const svgEl = document.getElementById('svg-canvas');
+        svgEl.style.fontFamily = getFontVal();
+
+        const lw = config.linkWidth;
+        const lc = config.linkColor;
+
+        treeData.forEach(p => {
+            // node group
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("transform", "translate(" + Math.round(p.x) + "," + Math.round(p.y) + ")");
+            g.setAttribute("class", "node");
+            g.setAttribute("data-id", p.id);
+            g.addEventListener('mousedown', e => e.stopPropagation());
+            g.addEventListener('click', e => {
+                e.stopPropagation();
+                if (document.getElementById('paint-mode').checked) {
+                    p.color = document.getElementById('paint-color').value;
+                    render();
+                } else {
+                    openModal(p.id);
+                }
+            });
+
+            // rect — strokeはすべてinline attributeで指定（CSS上書きを避けるため）
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("width",        config.nodeW);
+            rect.setAttribute("height",       config.nodeH);
+            rect.setAttribute("fill",         p.color || "#ffffff");
+            rect.setAttribute("rx",           config.radius);
+            rect.setAttribute("stroke",       lc);
+            rect.setAttribute("stroke-width", lw);
+            g.appendChild(rect);
+
+            // texts
+            const mid    = config.nodeH / 2;
+            const hasTop = !!p.memo;
+            const hasBot = !!p.years;
+            if (hasTop) g.appendChild(mkText(p.memo,  config.nodeW / 2, mid - 18, "memo",  config.colorMemo));
+            g.appendChild(             mkText(p.name,  config.nodeW / 2, mid + (hasTop || hasBot ? 2 : 0), "name",  config.colorName));
+            if (hasBot) g.appendChild(mkText(p.years, config.nodeW / 2, mid + 20, "years", config.colorYears));
+
+            nodesLayer.appendChild(g);
+
+            // links — strokeはすべてinline attribute
+            p.children.forEach(cid => {
+                const child = treeData.find(n => n.id === cid);
+                if (!child) return;
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const midY = Math.round(p.y + config.nodeH + config.gapY / 2);
+                path.setAttribute("d",
+                    "M " + Math.round(p.x + config.nodeW / 2) + " " + Math.round(p.y + config.nodeH) +
+                    " V " + midY +
+                    " H " + Math.round(child.x + config.nodeW / 2) +
+                    " V " + Math.round(child.y)
+                );
+                path.setAttribute("class",        "link");
+                path.setAttribute("stroke",       lc);
+                path.setAttribute("stroke-width", lw);
+                if (child.lineStyle === 'dashed') {
+                    path.setAttribute("stroke-dasharray", "5,5");
+                }
+                linksLayer.appendChild(path);
+            });
+        });
+
+        const bbox = nodesLayer.getBBox();
+        svgEl.setAttribute("width",  Math.max(window.innerWidth,       bbox.x + bbox.width  + 100));
+        svgEl.setAttribute("height", Math.max(window.innerHeight - 90, bbox.y + bbox.height + 100));
+
+        // applySearchHighlights();
+    }
+
+    function mkText(txt, x, y, cls, color) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        el.setAttribute("x",     x);
+        el.setAttribute("y",     y);
+        el.setAttribute("class", cls);
+        el.setAttribute("fill",  color || "#000000");
+        el.textContent = txt;
+        return el;
+    }
+
+// ========== カラーピッカー ==========
+function syncColorText(picker) {
+    const text = document.getElementById(picker.id + '-text');
+    if (text) text.value = picker.value;
+    updateSettings();
+}
+function syncColorPicker(textInput) {
+    const val = textInput.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        const picker = document.getElementById(textInput.id.replace('-text', ''));
+        if (picker) picker.value = val;
+        updateSettings();
+    }
+}
+
+function toggleColorMode() {
+    const isCode = document.getElementById('color-code-mode').checked;
+    document.querySelectorAll('input[type="color"]').forEach(picker => {
+        const text = document.getElementById(picker.id + '-text');
+        if (!text) return;
+        picker.style.display = isCode ? 'none' : '';
+        text.style.display   = isCode ? 'inline-block' : 'none';
+    });
+}
+
+    // ========== SEARCH ==========
+let lastSearchQuery = "";
+let searchHighlightTimer = null;
+
+function execSearch() {
+    const q = document.getElementById('search-input').value.trim();
+
+    // 1. 空入力の処理
+    if (!q) {
+        lastSearchQuery = "";
+        searchResults = [];
+        searchIndex = 0;
+        document.getElementById('search-count').textContent = '';
+        clearSearchHighlights();
+        return;
+    }
+
+    // 2. 「前と同じワード」かつ「結果が存在する」場合は次へ移動 (searchNextの挙動)
+    if (q === lastSearchQuery && searchResults.length > 0) {
+        searchIndex = (searchIndex + 1) % searchResults.length;
+        updateSearchCount();
+        scrollToNode(searchResults[searchIndex]);
+        applySearchHighlights();
+        return; 
+    }
+
+    // 3. 「新しいワード」の場合は新規検索 (従来のexecSearchの挙動)
+    lastSearchQuery = q; // 現在のワードを保存
+    searchIndex = 0;
+    const lower = q.toLowerCase();
+    
+    searchResults = treeData.filter(p =>
+        (p.name  && p.name.toLowerCase().includes(lower))  ||
+        (p.memo  && p.memo.toLowerCase().includes(lower))  ||
+        (p.years && p.years.toLowerCase().includes(lower))
+    );
+
+    updateSearchCount();
+    applySearchHighlights();
+    
+    if (searchResults.length > 0) {
+        scrollToNode(searchResults[0]);
+    }
+}
+
+    function onSearchKey(e) { if (e.key === 'Enter') execSearch(); }
+
+    function searchNext() {
+        if (searchResults.length === 0) { execSearch(); return; }
+        searchIndex = (searchIndex + 1) % searchResults.length;
+        updateSearchCount();
+        scrollToNode(searchResults[searchIndex]);
+        applySearchHighlights();
+    }
+
+    function updateSearchCount() {
+        document.getElementById('search-count').textContent =
+            searchResults.length === 0 ? '0件' : (searchIndex + 1) + '/' + searchResults.length;
+    }
+
+    function scrollToNode(node) {
+        if (!node) return;
+        const c  = document.getElementById('canvas-container');
+        const cx = node.x * zoomLevel + (config.nodeW * zoomLevel) / 2;
+        const cy = node.y * zoomLevel + (config.nodeH * zoomLevel) / 2;
+        c.scrollTo({ left: cx - c.clientWidth / 2, top: cy - c.clientHeight / 2, behavior: 'smooth' });
+    }
+
+    function applySearchHighlights() {
+        if (searchHighlightTimer) {
+            clearTimeout(searchHighlightTimer);
+        }
+        const hl = document.getElementById('highlight-layer');
+        hl.classList.remove('fade-out');
+        hl.innerHTML = '';
+        const currentId = searchResults[searchIndex] ? searchResults[searchIndex].id : null;
+        searchResults.forEach(p => {
+            const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            const isCurrent = (p.id === currentId);
+            r.setAttribute("x",              Math.round(p.x) - 3);
+            r.setAttribute("y",              Math.round(p.y) - 3);
+            r.setAttribute("width",          config.nodeW + 6);
+            r.setAttribute("height",         config.nodeH + 6);
+            r.setAttribute("rx",             parseInt(config.radius) + 3);
+            r.setAttribute("fill",           "none");
+            r.setAttribute("stroke",         isCurrent ? "#f0c040" : "#999");
+            r.setAttribute("stroke-width",   isCurrent ? 3 : 2);
+            r.setAttribute("opacity",        isCurrent ? "1" : "0.5");
+            r.setAttribute("pointer-events", "none");
+            hl.appendChild(r);
+        });
+        searchHighlightTimer = setTimeout(() => {
+            startFadeOut();
+        }, 500);
+    }
+
+function startFadeOut() {
+    const hl = document.getElementById('highlight-layer');
+    hl.classList.add('fade-out'); // これでCSSの transition が発動
+
+    // 完全に透明になった頃（0.8秒後）に中身を空にする
+    setTimeout(() => {
+        if (hl.classList.contains('fade-out')) {
+            hl.innerHTML = '';
+        }
+    }, 400); 
+}
+
+    function clearSearchHighlights() {
+        const hl = document.getElementById('highlight-layer');
+        hl.innerHTML = '';
+        hl.classList.remove('fade-out');
+        if (searchHighlightTimer) {
+            clearTimeout(searchHighlightTimer);
+            searchHighlightTimer = null;
+        }
+    }
+
+    // ========== MODAL ==========
+    function openModal(id) {
+        selectedId = id;
+        const p = treeData.find(n => n.id === id);
+        const hasParent = treeData.some(n => n.children.includes(id));
+        const btn = document.getElementById('add-parent-btn');
+        btn.disabled      = hasParent;
+        btn.style.opacity = hasParent ? "0.4" : "1";
+
+        const dlbtn = document.getElementById('delete-one-btn');
+        dlbtn.disabled      = !hasParent;
+        dlbtn.style.opacity = !hasParent ? "0.4" : "1";
+
+        document.getElementById('edit-memo').value       = p.memo  || '';
+        document.getElementById('edit-name').value       = p.name;
+        document.getElementById('edit-years').value      = p.years || '';
+        document.getElementById('batch-names').value     = '';
+        document.getElementById('edit-line-style').value = p.lineStyle || 'normal';
+        document.getElementById('new-parent-name').value = '';
+        hideAddParentForm();
+
+        document.getElementById('modal-wrapper').style.display = 'flex';
+        document.getElementById('overlay').style.display       = 'block';
+    }
+
+    function closeModal() {
+        const p = treeData.find(n => n.id === selectedId);
+        if (p) {
+            p.name      = document.getElementById('edit-name').value;
+            p.memo      = document.getElementById('edit-memo').value;
+            p.years     = document.getElementById('edit-years').value;
+            p.lineStyle = document.getElementById('edit-line-style').value;
+        }
+        document.getElementById('modal-wrapper').style.display = 'none';
+        document.getElementById('overlay').style.display       = 'none';
+        render();
+    }
+
+    // ---- 親追加フォーム ----
+    function toggleAddParentForm() {
+        const form = document.getElementById('add-parent-form');
+        const visible = form.style.display === 'block';
+        form.style.display = visible ? 'none' : 'block';
+        if (!visible) document.getElementById('new-parent-name').focus();
+    }
+    function hideAddParentForm() {
+        document.getElementById('add-parent-form').style.display = 'none';
+    }
+    function execAddParent() {
+        const hasParent = treeData.some(n => n.children.includes(selectedId));
+        if (hasParent) { alert("この人物には既に親が登録されています。"); return; }
+        const name = document.getElementById('new-parent-name').value.trim();
+        if (!name) { alert("名前を入力してください。"); return; }
+        const newId = "p" + Date.now();
+        treeData.push({ id: newId, name: name, children: [selectedId], color: "#ffffff", lineStyle: 'normal' });
+        treeData.forEach(p => { if (p.id !== newId) p.children = p.children.filter(cid => cid !== selectedId); });
+        render();
+        closeModal();
+    }
+
+    function execAddChildren() {
+        const input = document.getElementById('batch-names').value;
+        const sep   = /[、，,\s\u3000]+/u;
+        const names = input.split(sep).filter(n => n.trim() !== "");
+        const parent = treeData.find(p => p.id === selectedId);
+        names.forEach((name, i) => {
+            const newId = "p" + Date.now() + i;
+            treeData.push({ id: newId, name: name.trim(), children: [], color: "#ffffff", lineStyle: 'normal' });
+            parent.children.push(newId);
+        });
+        render(); closeModal();
+    }
+
+    function execDelete() {
+        if (!confirm("削除しますか\uff1f\uff08この人物以下全てが削除されます\uff09")) return;
+        const allChildren = new Set(treeData.flatMap(d => d.children));
+        if (!allChildren.has(selectedId)) return; // 誰の子でもない＝ルートノードなので削除不可
+        const toDelete = [];
+        const findDesc = id => {
+            toDelete.push(id);
+            const p = treeData.find(n => n.id === id);
+            if (p) p.children.forEach(findDesc);
+        };
+        findDesc(selectedId);
+        treeData = treeData.filter(n => !toDelete.includes(n.id));
+        treeData.forEach(p => p.children = p.children.filter(cid => cid !== selectedId));
+        render(); closeModal();
+    }
+
+    function moveOrder(dir) {
+        const parent = treeData.find(p => p.children.includes(selectedId));
+        if (!parent) return;
+        const idx    = parent.children.indexOf(selectedId);
+        const newIdx = idx + dir;
+        if (newIdx >= 0 && newIdx < parent.children.length) {
+            [parent.children[idx], parent.children[newIdx]] = [parent.children[newIdx], parent.children[idx]];
+            render();
+        }
+    }
+
+    // ========== SURNAME ==========
+    function applySurname(add) {
+        const s = document.getElementById('surname-input').value;
+        if (!s) return;
+        treeData.forEach(p => {
+            if (add  && !p.name.startsWith(s)) p.name = s + p.name;
+            if (!add &&  p.name.startsWith(s)) p.name = p.name.replace(s, "");
+        });
+        render();
+    }
+
+    // ========== HELP ==========
+    function openHelp() {
+        document.getElementById('help-overlay').style.display = 'block';
+        document.getElementById('help-wrapper').style.display = 'flex';
+    }
+    function closeHelp() {
+        document.getElementById('help-overlay').style.display = 'none';
+        document.getElementById('help-wrapper').style.display = 'none';
+    }
+
+    // ========== JSON ==========
+    function exportJSON() {
+        const blob = new Blob([JSON.stringify({ treeData, config }, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'family_tree.json';
+        a.click();
+    }
+
+    function importJSON(e) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const data = JSON.parse(ev.target.result);
+            treeData = data.treeData;
+            if (data.config) config = Object.assign(config, data.config);
+            syncUIFromConfig();
+            render();
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    // ========== EXPORT IMAGE ==========
+    // 単位変換ユーティリティ
+    function fontSizeToPt() {
+        const v    = parseFloat(document.getElementById('export-font-size').value) || 12;
+        const unit = document.getElementById('export-font-unit').value;
+        // 1Q = 0.25mm, 1pt = 25.4/72 mm
+        return unit === 'pt' ? v : v * 0.25 / (25.4 / 72);
+    }
+    function ptToPx(pt, dpi) { return pt / 72 * dpi; }
+    function mmToPx(mm, dpi) { return mm / 25.4 * dpi; }
+
+    function openExportModal() {
+        updateExportInfo();
+        document.getElementById('export-overlay').style.cssText = 'display:block';
+        const w = document.getElementById('export-modal-wrapper');
+        w.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100%; height:100%; justify-content:center; align-items:center; z-index:200;';
+    }
+    function closeExportModal() {
+        document.getElementById('export-overlay').style.cssText = 'display:none';
+        document.getElementById('export-modal-wrapper').style.cssText = 'display:none';
+    }
+
+    function updateExportInfo() {
+        const fmt    = document.getElementById('export-format').value;
+        const pngOpt = document.getElementById('png-options');
+        pngOpt.style.display = fmt === 'png' ? '' : 'none';
+
+        const namePt    = fontSizeToPt();
+        const paddingMm = parseFloat(document.getElementById('export-padding').value) || 10;
+        const unit      = document.getElementById('export-font-unit').value;
+        const val       = document.getElementById('export-font-size').value;
+
+        if (fmt === 'svg') {
+            // SVGは解像度非依存。表示用にmmで余白を表示
+            document.getElementById('export-info').innerHTML =
+                '名前: ' + val + ' ' + unit + ' = ' + namePt.toFixed(2) + ' pt<br>' +
+                '余白: ' + paddingMm + ' mm<br>' +
+                '形式: SVG（ベクター、解像度フリー）';
+        } else {
+            const dpi    = parseInt(document.getElementById('export-dpi').value) || 300;
+            const namePx = ptToPx(namePt, dpi);
+            const padPx  = mmToPx(paddingMm, dpi);
+            const scale  = namePx / 16;
+            const bbox   = document.getElementById('nodes-layer').getBBox();
+            const w = Math.ceil((bbox.x + bbox.width)  * scale + padPx * 2);
+            const h = Math.ceil((bbox.y + bbox.height) * scale + padPx * 2);
+            document.getElementById('export-info').innerHTML =
+                '名前: ' + val + ' ' + unit + ' = ' + namePt.toFixed(2) + ' pt = ' + namePx.toFixed(1) + ' px<br>' +
+                '余白: ' + paddingMm + ' mm = ' + padPx.toFixed(1) + ' px<br>' +
+                '出力サイズ: ' + w + ' × ' + h + ' px @ ' + dpi + ' dpi<br>' +
+                'スケール: ' + scale.toFixed(3) + '×';
+        }
+    }
+
+    function saveAsImage() {
+        const fmt = document.getElementById('export-format').value;
+        if (fmt === 'svg') { saveAsSVG(); } else { saveAsPNG(); }
+    }
+
+    // ---- SVG書き出し ----
+    // SVGはpt単位をネイティブサポートする。座標系もpt単位で統一することで
+    // 「フォントサイズ=入力値そのまま」が実現でき、解像度依存の計算が不要になる。
+    function saveAsSVG() {
+        const namePt    = fontSizeToPt();                         // 名前フォント (pt)
+        const memoPt    = namePt * 0.69;
+        const yearsPt   = namePt * 0.63;
+        const paddingMm = parseFloat(document.getElementById('export-padding').value) || 10;
+        const padPt     = paddingMm / 25.4 * 72;                 // mm → pt (1inch=72pt)
+
+        // 画面座標 (px, 名前=16px) → pt への変換係数
+        // 1px画面 = (namePt / 16) pt 出力
+        const scale = namePt / 16;
+
+        const fontVal = getFontVal();
+        // 線幅: 画面上のlinkWidth(px)をscale倍してpt値に
+        const lwPt    = config.linkWidth * scale;
+        const lc      = config.linkColor;
+        // 破線: 線幅の4倍を上限とし、最大8pt固定（スケール非依存で見た目を安定させる）
+        const dashPt  = Math.min(lwPt * 4, 8);
+
+        const bbox  = document.getElementById('nodes-layer').getBBox();
+        const nodeW = config.nodeW  * scale;   // pt
+        const nodeH = config.nodeH  * scale;   // pt
+        const gapY  = config.gapY   * scale;   // pt
+        const rx    = parseInt(config.radius) * scale;
+        const svgW  = (bbox.x + bbox.width)  * scale + padPt * 2;
+        const svgH  = (bbox.y + bbox.height) * scale + padPt * 2;
+        const ox    = padPt - bbox.x * scale;
+        const oy    = padPt - bbox.y * scale;
+
+        const f = v => v.toFixed(3);  // 小数3桁で整形
+
+        let L = [];
+        L.push('<?xml version="1.0" encoding="UTF-8"?>');
+        L.push('<svg xmlns="http://www.w3.org/2000/svg"'
+            + ' width="'   + f(svgW) + 'pt"'
+            + ' height="'  + f(svgH) + 'pt"'
+            + ' viewBox="0 0 ' + f(svgW) + ' ' + f(svgH) + '"'
+            + ' style="font-family:' + fontVal + ';">');
+        L.push('<rect width="' + f(svgW) + '" height="' + f(svgH) + '" fill="' + (config.bgColor || '#ffffff') + '"/>');
+
+        // リンク
+        treeData.forEach(p => {
+            p.children.forEach(cid => {
+                const child = treeData.find(n => n.id === cid);
+                if (!child) return;
+                const px2  = p.x     * scale + ox;
+                const py2  = p.y     * scale + oy;
+                const cx2  = child.x * scale + ox;
+                const cy2  = child.y * scale + oy;
+                const midY = py2 + nodeH + gapY / 2;
+                const dash = child.lineStyle === 'dashed'
+                    ? ' stroke-dasharray="' + f(dashPt) + ' ' + f(dashPt) + '"'
+                    : '';
+                L.push('<path d="M' + f(px2 + nodeW/2) + ' ' + f(py2 + nodeH)
+                    + ' V' + f(midY)
+                    + ' H' + f(cx2 + nodeW/2)
+                    + ' V' + f(cy2) + '"'
+                    + ' fill="none" stroke="' + lc + '" stroke-width="' + f(lwPt) + '"' + dash + '/>');
+            });
+        });
+
+        // ノード
+        treeData.forEach(p => {
+            const nx   = p.x * scale + ox;
+            const ny   = p.y * scale + oy;
+            const mid  = ny + nodeH / 2;
+            const cx3  = nx + nodeW / 2;
+            const hasTop = !!p.memo;
+            const hasBot = !!p.years;
+
+            L.push('<rect x="' + f(nx) + '" y="' + f(ny) + '" width="' + f(nodeW) + '" height="' + f(nodeH) + '"'
+                + ' rx="' + f(rx) + '" fill="' + (p.color || '#ffffff') + '"'
+                + ' stroke="' + lc + '" stroke-width="' + f(lwPt) + '"/>');
+
+            if (hasTop) {
+                L.push('<text x="' + f(cx3) + '" y="' + f(mid - namePt * 1.1) + '"'
+                    + ' text-anchor="middle" dominant-baseline="middle"'
+                    + ' font-size="' + f(memoPt) + 'pt" font-weight="bold"'
+                    + ' fill="' + config.colorMemo + '">' + escXML(p.memo) + '</text>');
+            }
+            L.push('<text x="' + f(cx3) + '" y="' + f(mid + (hasTop || hasBot ? namePt * 0.1 : 0)) + '"'
+                + ' text-anchor="middle" dominant-baseline="middle"'
+                + ' font-size="' + f(namePt) + 'pt"'
+                + ' fill="' + config.colorName + '">' + escXML(p.name) + '</text>');
+            if (hasBot) {
+                L.push('<text x="' + f(cx3) + '" y="' + f(mid + namePt * 1.2) + '"'
+                    + ' text-anchor="middle" dominant-baseline="middle"'
+                    + ' font-size="' + f(yearsPt) + 'pt"'
+                    + ' fill="' + config.colorYears + '">' + escXML(p.years) + '</text>');
+            }
+        });
+
+        L.push('</svg>');
+        const blob = new Blob([L.join('\n')], { type: 'image/svg+xml;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'family_tree.svg';
+        a.click();
+        closeExportModal();
+    }
+
+    function escXML(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // ---- PNG書き出し ----
+function saveAsPNG() {
+    const dpi       = parseInt(document.getElementById('export-dpi').value) || 300;
+    const namePt    = fontSizeToPt();
+    const namePx    = ptToPx(namePt, dpi);
+    const paddingMm = parseFloat(document.getElementById('export-padding').value) || 10;
+    const paddingPx = mmToPx(paddingMm, dpi);
+    const scale     = namePx / 16;
+    closeExportModal();
+
+    const svg  = document.getElementById('svg-canvas');
+    const bbox = document.getElementById('nodes-layer').getBBox();
+
+    // viewBoxはSVG座標系（scale前）で指定し、width/heightでscale倍を表現する
+    const vbX = Math.round(bbox.x - paddingPx / scale);
+    const vbY = Math.round(bbox.y - paddingPx / scale);
+    const vbW = Math.round(bbox.width  + (paddingPx / scale) * 2);
+    const vbH = Math.round(bbox.height + (paddingPx / scale) * 2);
+    const canvasW = Math.ceil(vbW * scale);
+    const canvasH = Math.ceil(vbH * scale);
+
+    // CSSで定義されているスタイルをインライン化してシリアライズ時に失われないよう埋め込む
+    const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    style.textContent = `
+        text { font-family: ${getFontVal()}; shape-rendering: crispEdges; -webkit-font-smoothing: antialiased;}
+        .link { fill: none; shape-rendering: crispEdges; }
+        .node .memo  { font-size: 11px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; }
+        .node .name  { font-size: 16px; text-anchor: middle; dominant-baseline: middle; }
+        .node .years { font-size: 10px; text-anchor: middle; dominant-baseline: middle; }
+        svg { image-rendering: -webkit-optimize-contrast; }
+    `;
+    svg.insertBefore(style, svg.firstChild);
+
+    const origW  = svg.getAttribute('width');
+    const origH  = svg.getAttribute('height');
+    const origVB = svg.getAttribute('viewBox');
+    svg.setAttribute('width',   canvasW);
+    svg.setAttribute('height',  canvasH);
+    svg.setAttribute('viewBox', vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH);
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+
+    // 属性を元に戻す
+    svg.removeChild(style);
+    svg.setAttribute('width',   origW);
+    svg.setAttribute('height',  origH);
+    if (origVB) svg.setAttribute('viewBox', origVB);
+    else        svg.removeAttribute('viewBox');
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = canvasW;
+    canvas.height = canvasH;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+        ctx.fillStyle = config.bgColor || '#ffffff';
+        ctx.fillRect(0, 0, canvasW, canvasH);
+        ctx.drawImage(img, 0, 0);
+        const a = document.createElement('a');
+        a.href     = canvas.toDataURL('image/png');
+        a.download = 'family_tree.png';
+        a.click();
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+}
+
+    // 角丸矩形パスヘルパー
+    function drawRoundRect(ctx, x, y, w, h, r) {
+        if (r <= 0) { ctx.beginPath(); ctx.rect(x, y, w, h); return; }
+        r = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.arcTo(x + w, y,     x + w, y + r,     r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+        ctx.lineTo(x + r, y + h);
+        ctx.arcTo(x,     y + h, x,     y + h - r, r);
+        ctx.lineTo(x,     y + r);
+        ctx.arcTo(x,     y,     x + r, y,         r);
+        ctx.closePath();
+    }
+
+    // ========== DRAG SCROLL ==========
+    (function() {
+        const container = document.getElementById('canvas-container');
+        let isDragging  = false;
+        let startX, startY, scrollLeft, scrollTop;
+
+        container.addEventListener('mousedown', e => {
+            // ノード上のクリックは除外（ノードはevent.stopPropagationするので到達しないが念のため）
+            if (e.button !== 0) return;
+            isDragging  = true;
+            startX      = e.clientX;
+            startY      = e.clientY;
+            scrollLeft  = container.scrollLeft;
+            scrollTop   = container.scrollTop;
+            container.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            container.scrollLeft = scrollLeft - dx;
+            container.scrollTop  = scrollTop  - dy;
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            container.classList.remove('dragging');
+        });
+    })();
+
+    // ========== INIT ==========
+    render();
+</script>
+</body>
+</html>
