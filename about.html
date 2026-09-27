@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>このサイトについて｜歴史創作お役立ちツール集</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+  <link rel="stylesheet" href="header.css">
+  <style>
+    :root {
+      --navy:        #2c3e50;
+      --accent:      #7ca5bf;
+      --gold:        #b8976a;
+      --bg:          #fff;
+      --text:        #2e2c29;
+      --text-sub:    #7a7770;
+      --radius:      6px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Zen Maru Gothic", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    .main-wrapper {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    .page-title {
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 600;
+      color: var(--navy);
+      letter-spacing: .1em;
+      margin-bottom: 32px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--navy);
+      position: relative;
+    }
+
+    .about-section {
+      margin-bottom: 44px;
+      animation: fadeUp .4s ease both;
+    }
+
+    .about-section:nth-child(2) { animation-delay: 60ms; }
+    .about-section:nth-child(3) { animation-delay: 120ms; }
+    .about-section:nth-child(4) { animation-delay: 180ms; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-heading {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--navy);
+      letter-spacing: .1em;
+      margin-bottom: 14px;
+      padding-left: 12px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .about-text {
+      font-size: 14px;
+      line-height: 2;
+      color: var(--text-sub);
+    }
+
+    .about-text p {
+      margin-bottom: 12px;
+    }
+
+    .about-text p:last-child { margin-bottom: 0; }
+
+    .notes-list {
+      list-style: none;
+      font-size: 13px;
+      line-height: 1.85;
+      color: var(--text-sub);
+    }
+
+    .notes-list li {
+      padding: 8px 0 8px 18px;
+      border-bottom: 1px solid #dedad3;
+      position: relative;
+    }
+
+    .notes-list li:last-child { border-bottom: none; }
+
+    .notes-list li::before {
+      content: "·";
+      position: absolute;
+      left: 4px;
+      color: var(--accent);
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    .record-list {
+      list-style: none;
+      font-size: 13px;
+      line-height: 1.85;
+      color: var(--text-sub);
+    }
+
+    .record-list li {
+      padding: 4px 0 4px 18px;
+      border-bottom: 1px solid #dedad3;
+      position: relative;
+    }
+
+    .record-list li:last-child { border-bottom: none; }
+
+    .record-date {
+      font-weight: bold;
+      padding-right: 12px;
+      color: var(--accent);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--accent);
+      border: 1px solid #c2d9e8;
+      border-radius: 20px;
+      padding: 5px 16px;
+      transition: background .18s, color .18s;
+    }
+
+    .back-link:hover {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+    }
+
+    .back-link-arrow {
+      margin-right: 6px;
+      font-size: 14px;
+    }
+
+    footer {
+      background: #1a2633;
+      color: rgba(255,255,255,.35);
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: .08em;
+      padding: 16px 0;
+    }
+
+    @media (max-width: 600px) {
+      .header-inner  { padding: 20px 16px 16px; }
+      .header-deco   { display: none; }
+      .breadcrumb    { padding: 10px 16px 0; }
+      .main-wrapper  { padding: 24px 16px 60px; }
+    }
+  </style>
+</head>
+
+<script src="header.js" data-curent="index"></script>
+
+<body>
+
+  <div id="site-header"></div>
+
+  <div class="main-wrapper">
+
+    <h2 class="page-title">このサイトについて</h2>
+
+    <section class="about-section">
+      <h3 class="section-heading">サイト・ツールについて</h3>
+      <div class="about-text">
+        <p>「歴史創作お役立ちツール集」は、歴史創作に役立つかもしれないWebツールを公開しているサイトです。</p>
+        <p>主に古代〜中世の中国史歴史創作向けです(かなり偏り気味)。<br>
+        基本的に自分用ですが、もし使いどころがあれば、利用していただけると嬉しいです。</p>
+        <p>本サイトはリンクフリーです。各ツールへのリンクも問題ありません。</p>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <h3 class="section-heading">注意事項</h3>
+      <ul class="notes-list">
+        <li>PC・タブレット環境推奨です。</li>
+        <li>ツールは全てブラウザ上で動作し、データは外部に送信されません。</li>
+        <li>ツールのコーディングについては生成AI(Gemini・Claude)によるものをベースにしています。</li>
+        <li>ツールに含まれる情報・出力結果はあくまで参考情報です。史実の正確性については各自でご確認ください。</li>
+        <li>ツールの利用は自己責任・常識的な範囲でご自由に。作成された画像及び、スクリーンショットなどの利用についても制限はありません。</li>
+        <li>ツール本体の無断転載・再配布・改変はご遠慮ください。</li>
+        <li>ツールのデータや内容は予告なく変更・削除される場合があります。</li>
+        <li>本サイトの利用によって生じたいかなる損害についても、制作者は責任を負いかねます。</li>
+      </ul>
+    </section>
+
+    <section class="about-section">
+      <h3 class="section-heading">制作</h3>
+      <div class="about-text">
+        <p><b>八朔</b></p>
+        <p>mail｜emiyahozumi(a)gmail.com<br>
+          link｜<a href="https://lit.link/hozumi8" target="_blank" style="color:#7ca5bf;">litlink</a></p>
+        <p><a href="https://forms.gle/y3DZGCg9V2dTLKU47" target="_blank" style="color:#7ca5bf;">コメントフォーム</a>　▶︎　返信は<a href="https://rekiso-tools.blogspot.com/p/note.html" target="_blank" style="color:#7ca5bf;">こちら</a>にて</p>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <h3 class="section-heading">更新履歴</h3>
+      <ul class="record-list">
+        <li><span class="record-date">2026-xx-xx</span>サイト公開</li>
+        <li><span class="record-date">2026-03-18</span>サイト開設</li>
+      </ul>
+    </section>
+
+    <a href="index.html" class="back-link">
+      <span class="back-link-arrow">←</span> ツール一覧へ戻る
+    </a>
+
+  </div>
+
+  <!-- フッター -->
+  <!--<footer>&copy; 歴史創作お役立ちツール集</footer>-->
+
+</body>
+</html>
