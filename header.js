@@ -42,12 +42,12 @@
     '<header id="global-header">' +
     '\n  <div class="header-inner">' +
     '\n    <h1 class="site-title">' +
-    '\n      <a href="' + rootPath + 'index.html" id="header-title-link" title="クリックでヘッダーを最小化">' +
+    '\n      <span id="header-title-link" title="クリックでヘッダーを最小化" style="cursor:pointer;">' +
     '歴史創作お役立ちツール集' +
-    '</a>' +
+    '</span>' +
     '\n    </h1>' +
     '\n    <span class="header-deco">REKISHI SOSAKU TOOLS</span>' +
-    '\n    <span class="header-toggle-hint">▲ タップで最小化</span>' +
+    '\n    <span class="header-toggle-hint">▲ クリックで最小化</span>' +
     '\n  </div>' +
     '\n  <nav class="header-nav">' +
     '\n      ' + navHtml +
@@ -87,7 +87,6 @@
 
   /* トグル */
   function toggleMinimize(e) {
-    e.preventDefault(); /* ページ遷移させない */
     var h = getHeader();
     if (!h) return;
 
