@@ -1,0 +1,135 @@
+/* =============================================================================
+   共通ヘッダー header.css
+   index.html・各ツールページ・about.html から読み込んで使う
+============================================================================= */
+
+/* ─── ヘッダー本体 ──────────────────────────────────────────────────────── */
+header {
+  background: #1a2633;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  /* 最小化アニメーション用 */
+  transition: all .3s ease;
+}
+
+.header-inner {
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 24px 22px;
+  display: flex;
+  align-items: flex-end;
+  transition: padding .3s ease;
+}
+
+/* ─── サイトタイトル ─────────────────────────────────────────────────────── */
+.site-title {
+  font-weight: 600;
+  font-size: clamp(22px, 4vw, 36px);
+  color: #fff;
+  letter-spacing: .12em;
+  line-height: 1.2;
+  /* 最小化アニメーション用 */
+  transition: font-size .3s ease;
+}
+
+.site-title a {
+  color: inherit;
+  cursor: pointer;
+  /* クリックできることをほのめかす */
+  user-select: none;
+}
+
+.site-title a:hover {
+  opacity: .85;
+}
+
+/* ─── サブテキスト ───────────────────────────────────────────────────────── */
+.header-deco {
+  margin-left: 16px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #c2d9e8;
+  letter-spacing: .18em;
+  opacity: .7;
+  white-space: nowrap;
+  transition: opacity .3s ease, font-size .3s ease;
+}
+
+/* ─── ナビゲーション ─────────────────────────────────────────────────────── */
+.header-nav {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px 10px;
+  display: flex;
+  transition: padding .3s ease, opacity .3s ease;
+}
+
+.header-nav a {
+  font-size: 12px;
+  color: rgba(255,255,255,.55);
+  letter-spacing: .08em;
+  padding: 3px 10px 3px 0;
+  border-right: 1px solid rgba(255,255,255,.15);
+  margin-right: 10px;
+  transition: color .18s;
+}
+
+.header-nav a:last-child {
+  border-right: none;
+}
+
+.header-nav a:hover {
+  color: #fff;
+}
+
+.header-nav a.current {
+  color: #c2d9e8;
+}
+
+/* ─── 最小化ヒント ───────────────────────────────────────────────────────── */
+/* タイトル右端に小さい▲を表示してクリックできることを示す */
+.header-toggle-hint {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(255,255,255,.3);
+  align-self: center;
+  padding-bottom: 6px;
+  letter-spacing: .04em;
+  transition: opacity .3s ease;
+  white-space: nowrap;
+}
+
+/* ─── 最小化状態 ─────────────────────────────────────────────────────────── */
+header.minimized .header-inner {
+  padding: 8px 24px 6px;
+}
+
+header.minimized .site-title {
+  font-size: clamp(13px, 2vw, 16px);
+}
+
+header.minimized .header-deco {
+  font-size: 9px;
+  opacity: .5;
+}
+
+header.minimized .header-nav {
+  padding: 0 24px 6px;
+  opacity: .8;
+}
+
+header.minimized .header-toggle-hint {
+  opacity: 0;
+}
+
+/* ─── レスポンシブ ───────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .header-inner        { padding: 20px 16px 14px; }
+  .header-deco         { display: none; }
+  .header-nav          { padding: 0 16px 8px; }
+  .header-toggle-hint  { display: none; }
+
+  header.minimized .header-inner { padding: 7px 16px 5px; }
+}
