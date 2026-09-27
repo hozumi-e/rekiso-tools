@@ -65,6 +65,7 @@ header {
   border-right: 1px solid rgba(255,255,255,.15);
   margin-right: 10px;
   transition: color .18s;
+  text-decoration: none;
 }
 
 .header-nav a:last-child {
