@@ -104,8 +104,7 @@ header.minimized .header-deco {
 }
 
 header.minimized .header-nav {
-  padding: 0 24px 6px;
-  opacity: .8;
+  display: none;
 }
 
 header.minimized .header-toggle-hint {
