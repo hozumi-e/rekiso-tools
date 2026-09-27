@@ -54,20 +54,6 @@
     '\n  </nav>' +
     '\n</header>';
 
-  /* 挿入先 */
-  function insertHeader() {
-    var placeholder = document.getElementById("site-header");
-    if (placeholder) {
-      placeholder.outerHTML = headerHtml;
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", insertHeader);
-  } else {
-    insertHeader();
-  }
-
   /* ── 3. 最小化トグル ── */
   var STORAGE_KEY = "header_minimized";
 
@@ -75,21 +61,9 @@
     return document.getElementById("global-header");
   }
 
-  /* 保存された状態を復元 */
-  function restoreState() {
-    try {
-      if (localStorage.getItem(STORAGE_KEY) === "1") {
-        var h = getHeader();
-        if (h) h.classList.add("minimized");
-      }
-    } catch (e) { /* localStorage 未対応環境は無視 */ }
-  }
-
-  /* トグル */
-  function toggleMinimize(e) {
+  function toggleMinimize() {
     var h = getHeader();
     if (!h) return;
-
     if (h.classList.contains("minimized")) {
       h.classList.remove("minimized");
       try { localStorage.setItem(STORAGE_KEY, "0"); } catch (e) {}
@@ -99,12 +73,31 @@
     }
   }
 
-  /* DOM 挿入直後にイベント登録 & 状態復元 */
-  restoreState();
+  /* 挿入 → 状態復元 → イベント登録 を一連で行う */
+  function insertHeader() {
+    var placeholder = document.getElementById("site-header");
+    if (!placeholder) return;
+    placeholder.outerHTML = headerHtml;
 
-  var titleLink = document.getElementById("header-title-link");
-  if (titleLink) {
-    titleLink.addEventListener("click", toggleMinimize);
+    /* 挿入後に状態復元 */
+    try {
+      if (localStorage.getItem(STORAGE_KEY) === "1") {
+        var h = getHeader();
+        if (h) h.classList.add("minimized");
+      }
+    } catch (e) {}
+
+    /* 挿入後にイベント登録 */
+    var titleLink = document.getElementById("header-title-link");
+    if (titleLink) {
+      titleLink.addEventListener("click", toggleMinimize);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", insertHeader);
+  } else {
+    insertHeader();
   }
 
 })();
