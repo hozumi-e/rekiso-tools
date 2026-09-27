@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中華風フレームメーカー</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+<link rel="stylesheet" href="../header.css">
+<style>
+
+  :root {
+    --bg:       #f5f5f3;
+    --surface:  #ffffff;
+    --surface2: #f0f0ee;
+    --border:   #e0e0dc;
+    --border2:  #c8c8c4;
+    --accent:   #1a1a1a;
+    --accent2:  #555550;
+    --text:     #1a1a1a;
+    --text-dim: #888884;
+    --edge-ext: #2563eb;
+    --primary:  #1a1a1a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Zen Maru Gothic, serif;
+    min-height: 100vh;
+  }
+
+  container {
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    font-weight: 300;
+  }
+
+  tool-header {
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+  }
+  tool-header h1 {
+    font-size: 15px;
+    color: var(--text);
+    letter-spacing: 0.12em;
+    font-weight: 600;
+  }
+  tool-header .sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .app {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 45px);
+  }
+
+  .panel {
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .left-panel  { width: 200px; min-width: 200px; border-right: 1px solid var(--border); }
+  .right-panel { width: 224px; min-width: 224px; border-left:  1px solid var(--border); }
+
+  .sec {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sec-title {
+    font-size: 14px;
+    color: var(--text-dim);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+
+  label { font-size: 10px; color: var(--text-dim); display: block; margin-bottom: 3px; }
+  .field { margin-bottom: 10px; }
+
+  input[type=range] {
+    width: 100%; -webkit-appearance: none; height: 2px;
+    background: var(--border2); border-radius: 1px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--accent); cursor: pointer;
+    border: 2px solid white; box-shadow: 0 0 0 1px var(--border2);
+  }
+  .rrow { display: flex; align-items: center; gap: 6px; }
+  .rrow input[type=number] {
+    width: 44px; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-size: 10px; padding: 3px 4px; border-radius: 2px;
+    text-align: center; 
+  }
+  .rrow input[type=range] { flex: 1; }
+
+  input[type=color] {
+    width: 100%; height: 28px; border: 1px solid var(--border);
+    border-radius: 2px; background: none; cursor: pointer; padding: 2px;
+  }
+
+  .btn {
+    display: block; width: 100%; padding: 7px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-size: 10px; cursor: pointer; border-radius: 2px;
+    font-weight: 400;
+    transition: all 0.1s; margin-bottom: 5px; text-align: center;
+    letter-spacing: 0.04em;
+  }
+  .btn:hover { border-color: var(--accent); background: var(--surface); }
+  .btn.primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+    font-weight: 500;
+  }
+  .btn.primary:hover { background: #333; }
+
+  .center {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px; overflow: auto; background: var(--bg);
+  }
+  .canvas-wrap {
+    background: #fff;
+    border: 1px solid var(--border);
+  }
+  #mainCanvas { display: block; }
+  .canvas-hint {
+    font-size: 9px; color: var(--text-dim); text-align: center;
+    margin-top: 8px; letter-spacing: 0.06em;
+  }
+
+  #previewCanvas {
+    display: block; width: 100%;
+    border: 1px solid var(--border);
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  input[type=number].full {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-size: 10px; padding: 5px 6px; border-radius: 2px;
+  }
+
+  .info { font-size: 9px; color: var(--text-dim); line-height: 1.8; margin-bottom: 8px; }
+  .legend { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--text-dim); margin-bottom: 5px; }
+  .legend-line { width: 16px; height: 2px; }
+
+  select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-size: 10px; padding: 5px; border-radius: 2px;
+    cursor: pointer; margin-bottom: 6px;
+  }
+</style>
+</head>
+<script src="../header.js" data-curent="index"></script>
+<body>
+
+<div id="site-header"></div>
+
+<container>
+<tool-header>
+  <h1>中華風フレームメーカー</h1>
+  <span class="sub">Chinese Frame Maker</span>
+</tool-header>
+
+<div class="app">
+
+  <!-- LEFT PANEL -->
+  <div class="panel left-panel">
+
+    <div class="sec">
+      <div class="sec-title">スタイル</div>
+      <div class="field">
+        <label>線の色</label>
+        <input type="color" id="strokeColor" value="#000000">
+      </div>
+      <div class="field">
+        <label>線の太さ: <span id="swVal">10</span>%</label>
+        <div class="rrow">
+          <input type="range" id="sw" min="1" max="100" value="10">
+          <input type="number" id="swN" min="1" max="100" value="10">
+        </div>
+      </div>
+      <div class="field">
+        <button class="btn" onclick="drawOuterBorder()">外枠を描画</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">キャンバス</div>
+      <div class="field">
+        <label>キャンバスサイズ: <span id="csVal">30</span>%</label>
+        <div class="rrow">
+          <input type="range" id="cs" min="20" max="100" value="30">
+          <input type="number" id="csN" min="20" max="100" value="30">
+        </div>
+      </div>
+      <div class="field">
+        <button class="btn" onclick="clearAll()">全クリア</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">凡例</div>
+      <div class="legend">
+        <div class="legend-line" style="background:#000000"></div>
+        通常の辺
+      </div>
+      <div class="legend">
+        <div class="legend-line" style="background:#2563eb"></div>
+        延長される辺
+      </div>
+      <div class="info">
+        右端の横辺・下端の縦辺は、書き出し時に対辺の角まで延長されます。
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">使い方</div>
+      <div class="info">
+        <p>・フレームの左上の角をデザインします<br/>
+           ・対角線を基準に自動で対称になります<br/>
+           ・透過PNGで書き出されます<br/>
+           ・描画時は線細めがやりやすいです<br/>
+           ・線を閉じることと、正方形を意識するとそれっぽくなります</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <div class="canvas-wrap">
+      <canvas id="mainCanvas"></canvas>
+    </div>
+    <div class="canvas-hint">グリッド線をクリックして辺をON/OFF</div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel right-panel">
+
+    <div class="sec">
+      <div class="sec-title">プレビュー</div>
+      <canvas id="previewCanvas"></canvas>
+      <div class="field" style="margin-top:10px;">
+        <label>角の比率: <span id="crVal">30</span>%</label>
+        <div class="rrow">
+          <input type="range" id="cr" min="5" max="50" value="30">
+          <input type="number" id="crN" min="5" max="50" value="30">
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">書き出し</div>
+      <div class="two-col">
+        <div><label>幅 (px)</label><input type="number" class="full" id="expW" value="800" min="100" max="10000"></div>
+        <div><label>高さ (px)</label><input type="number" class="full" id="expH" value="600" min="100" max="10000"></div>
+      </div>
+      <div class="field">
+        <label>余白: <span id="epVal">10</span>px</label>
+        <div class="rrow">
+          <input type="range" id="ep" min="0" max="100" value="10">
+          <input type="number" id="epN" min="0" max="100" value="10">
+        </div>
+      </div>
+      <button class="btn primary" onclick="exportPNG()">画像を保存</button>
+    </div>
+
+  </div>
+
+</div>
+</container>
+
+<script>
+// ================================================================
+// STATE
+// ================================================================
+const GRID = 12;
+
+let cellSize    = 30;   // editor: CSS px per grid cell
+let strokeRatio = 0.10; // line width as fraction of one grid cell (0.01–0.5)
+let strokeColor = '#000000';
+let cornerRatio = 30;   // corner tile = min(W,H) * cornerRatio/100
+let exportPad   = 10;   // transparent padding around frame on export
+
+// hEdges[r][c]: horizontal segment, grid-row r (0..GRID), col c (0..GRID-1)
+// vEdges[r][c]: vertical segment,   grid-row r (0..GRID-1), grid-col c (0..GRID)
+let hEdges = [], vEdges = [];
+
+function initEdges() {
+  hEdges = Array.from({length: GRID+1}, ()=> Array(GRID).fill(false));
+  vEdges = Array.from({length: GRID},   ()=> Array(GRID+1).fill(false));
+}
+initEdges();
+
+// ================================================================
+// SYMMETRY  hEdge(r,c) <-> vEdge(c,r)
+// ================================================================
+function setHEdge(r, c, val) {
+  if (r<0||r>GRID||c<0||c>=GRID) return;
+  hEdges[r][c] = val;
+  if (r<GRID) vEdges[c][r] = val;        // mirror
+}
+function setVEdge(r, c, val) {
+  if (r<0||r>=GRID||c<0||c>GRID) return;
+  vEdges[r][c] = val;
+  if (c<GRID) hEdges[c][r] = val;        // mirror
+}
+function toggleH(r,c){ setHEdge(r,c,!hEdges[r][c]); }
+function toggleV(r,c){ setVEdge(r,c,!vEdges[r][c]); }
+
+// Extension edges (rightmost H col, bottommost V row)
+function isExtH(r,c){ return c===GRID-1; }
+function isExtV(r,c){ return r===GRID-1; }
+
+// ================================================================
+// CORE: build segment list for ONE corner tile
+//
+// ox, oy   – pixel coordinate of the CORNER VERTEX
+//            TL corner → (frame left,  frame top)
+//            TR corner → (frame right, frame top)
+//            BL corner → (frame left,  frame bottom)
+//            BR corner → (frame right, frame bottom)
+// sc       – pixels per grid unit (tileSize / GRID)
+// lw       – line width in pixels
+// dirX     – +1 if tile grows rightward from ox  (TL, BL)
+//            -1 if tile grows leftward  from ox  (TR, BR)
+// dirY     – +1 if tile grows downward  from oy  (TL, TR)
+//            -1 if tile grows upward    from oy  (BL, BR)
+// editorClr– true → extension edges shown in blue
+//
+// Grid coords: column c runs 0..GRID (left→right in TL orientation)
+//              row    r runs 0..GRID (top→bottom  in TL orientation)
+// With dirX/dirY the "natural" TL orientation is mirrored to the other corners.
+// ================================================================
+function cornerSegs(ox, oy, sc, lw, dirX, dirY, editorClr) {
+  const segs = [];
+
+  // Map grid coord → pixel offset from (ox, oy)
+  const px = gx => dirX * gx * sc;
+  const py = gy => dirY * gy * sc;
+
+  // Horizontal edges  (hEdges[r][c]: from (c,r) to (c+1,r) in grid space)
+  for (let r = 0; r <= GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      if (!hEdges[r][c]) continue;
+      const col = (editorClr && isExtH(r, c)) ? '#2563eb' : strokeColor;
+      segs.push({
+        x1: ox + px(c),   y1: oy + py(r),
+        x2: ox + px(c+1), y2: oy + py(r),
+        lw, col
+      });
+    }
+  }
+
+  // Vertical edges  (vEdges[r][c]: from (c,r) to (c,r+1) in grid space)
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c <= GRID; c++) {
+      if (!vEdges[r][c]) continue;
+      const col = (editorClr && isExtV(r, c)) ? '#2563eb' : strokeColor;
+      segs.push({
+        x1: ox + px(c), y1: oy + py(r),
+        x2: ox + px(c), y2: oy + py(r+1),
+        lw, col
+      });
+    }
+  }
+
+  return segs;
+}
+
+// ================================================================
+// Build ALL segments for a full 4-corner frame
+//   ox,oy      – top-left of the frame rectangle
+//   fw,fh      – frame rectangle size
+//   tileSize   – corner tile size (square, pixels)
+//   lw         – line width in pixels
+//   editorClr  – pass true only for editor display
+// ================================================================
+function frameSegs(ox, oy, fw, fh, tileSize, lw, editorClr) {
+  const sc   = tileSize / GRID;
+  const segs = [];
+
+  // 4 corners: each origin is the actual corner vertex of the frame rect
+  //                           ox           oy           dirX  dirY
+  segs.push(...cornerSegs(ox,      oy,       sc, lw,  1,  1, editorClr)); // TL
+  segs.push(...cornerSegs(ox+fw,   oy,       sc, lw, -1,  1, editorClr)); // TR
+  segs.push(...cornerSegs(ox,      oy+fh,    sc, lw,  1, -1, editorClr)); // BL
+  segs.push(...cornerSegs(ox+fw,   oy+fh,    sc, lw, -1, -1, editorClr)); // BR
+
+  // Extension connectors – horizontal lines connecting left↔right corner pairs
+  // hEdge(r, GRID-1) in TL corner sits at y = r*sc from oy
+  // The same line in TR corner mirrors to the same y from oy (dirY is same sign)
+  for (let r = 0; r <= GRID; r++) {
+    // Only the rightmost column (c = GRID-1) are extension edges for H
+    if (!hEdges[r][GRID-1]) continue;
+    const yOff = r * sc;
+    const xL   = ox + tileSize;          // right edge of TL tile
+    const xR   = ox + fw - tileSize;     // left  edge of TR tile
+    if (xR <= xL) continue;
+    segs.push({x1:xL, y1:oy+yOff,    x2:xR, y2:oy+yOff,    lw, col:strokeColor}); // top
+    segs.push({x1:xL, y1:oy+fh-yOff, x2:xR, y2:oy+fh-yOff, lw, col:strokeColor}); // bottom
+  }
+
+  // Extension connectors – vertical lines connecting top↔bottom corner pairs
+  // vEdge(GRID-1, c) in TL corner sits at x = c*sc from ox
+  for (let c = 0; c <= GRID; c++) {
+    // Only the bottommost row (r = GRID-1) are extension edges for V
+    if (!vEdges[GRID-1][c]) continue;
+    const xOff = c * sc;
+    const yT   = oy + tileSize;
+    const yB   = oy + fh - tileSize;
+    if (yB <= yT) continue;
+    segs.push({x1:ox+xOff,    y1:yT, x2:ox+xOff,    y2:yB, lw, col:strokeColor}); // left
+    segs.push({x1:ox+fw-xOff, y1:yT, x2:ox+fw-xOff, y2:yB, lw, col:strokeColor}); // right
+  }
+
+  return segs;
+}
+
+// ================================================================
+// DRAW SEGMENT LIST onto a canvas context (crisp pixel-aligned)
+// ================================================================
+function drawSegList(c2d, segs) {
+  if (segs.length === 0) return;
+  c2d.lineCap  = 'square';
+  c2d.lineJoin = 'miter';
+
+  // Group by (col, lw) to batch strokes
+  const groups = {};
+  for (const s of segs) {
+    const key = s.col + '|' + s.lw;
+    (groups[key] || (groups[key] = {col:s.col, lw:s.lw, list:[]})).list.push(s);
+  }
+
+  for (const g of Object.values(groups)) {
+    c2d.strokeStyle = g.col;
+    c2d.lineWidth   = g.lw;
+    c2d.beginPath();
+    for (const s of g.list) {
+      const lw   = g.lw;
+      const snap = (lw % 2 === 1) ? 0.5 : 0;
+      // 整数にスナップして座標を確定
+      c2d.moveTo(Math.round(s.x1) + snap, Math.round(s.y1) + snap);
+      c2d.lineTo(Math.round(s.x2) + snap, Math.round(s.y2) + snap);
+    }
+    c2d.stroke();
+  }
+}
+
+// ================================================================
+// EDITOR CANVAS
+// ================================================================
+const mainCanvas = document.getElementById('mainCanvas');
+const ctx        = mainCanvas.getContext('2d');
+const DPR        = window.devicePixelRatio || 1;
+
+function editorLW()  { return strokeRatio * cellSize; }   // line width in CSS px
+function editorPad() { return Math.ceil(editorLW() / 2) + 2; }
+
+function resizeMainCanvas() {
+  const pad  = editorPad();
+  const cssS = cellSize * GRID + pad * 2;
+  mainCanvas.style.width  = cssS + 'px';
+  mainCanvas.style.height = cssS + 'px';
+  mainCanvas.width  = Math.round(cssS * DPR);
+  mainCanvas.height = Math.round(cssS * DPR);
+  drawGrid();
+}
+
+function drawGrid() {
+  const lw  = editorLW();
+  const pad = editorPad();
+  const cs  = cellSize;
+  const cssS = cs * GRID + pad * 2;
+
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, cssS, cssS);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, cssS, cssS);
+
+  // Grid lines
+  ctx.save();
+  ctx.translate(pad + 0.5, pad + 0.5);
+  ctx.strokeStyle = '#e0e0dc';
+  ctx.lineWidth   = 0.5;
+  ctx.beginPath();
+  for (let i=0; i<=GRID; i++) {
+    const p = Math.round(i*cs);
+    ctx.moveTo(p, 0);       ctx.lineTo(p, cs*GRID);
+    ctx.moveTo(0, p);       ctx.lineTo(cs*GRID, p);
+  }
+  ctx.stroke();
+
+  // Diagonal guide
+  ctx.strokeStyle = '#c8c8c4';
+  ctx.lineWidth   = 1;
+  ctx.setLineDash([5,5]);
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(cs*GRID, cs*GRID);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Active edges
+  const sc   = cs;
+  const segs = cornerSegs(pad, pad, sc, lw, 1, 1, true);
+  drawSegList(ctx, segs);
+
+  // Hover highlight
+  if (hoverEdge) {
+    const h  = hoverEdge;
+    const on = h.type === 'h' ? hEdges[h.r][h.c] : vEdges[h.r][h.c];
+    // ON辺: 赤で強調 / OFF辺: 薄いグレーでプレビュー
+    ctx.lineWidth = lw;
+    ctx.lineCap   = 'square';
+    if (on) {
+      // 描画済み辺 → 赤でオーバーレイ
+      ctx.strokeStyle = '#e53935';
+    } else {
+      // 未描画辺 → 薄いグレーでプレビュー
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    }
+    const snap = (Math.round(lw) % 2 === 1) ? 0.5 : 0;
+    ctx.beginPath();
+    if (h.type === 'h') {
+      const x1 = Math.round(pad + h.c * cs) + snap;
+      const x2 = Math.round(pad + (h.c + 1) * cs) + snap;
+      const y  = Math.round(pad + h.r * cs) + snap;
+      ctx.moveTo(x1, y); ctx.lineTo(x2, y);
+    } else {
+      const y1 = Math.round(pad + h.r * cs) + snap;
+      const y2 = Math.round(pad + (h.r + 1) * cs) + snap;
+      const x  = Math.round(pad + h.c * cs) + snap;
+      ctx.moveTo(x, y1); ctx.lineTo(x, y2);
+    }
+    ctx.stroke();
+  }
+
+  updatePreview();
+}
+
+// ================================================================
+// HIT TEST
+// ================================================================
+const HIT = 7; // クリック判定の厚み（固定・細め）
+let hoverEdge = null; // {type, r, c} or null
+
+mainCanvas.addEventListener('mousemove', e => {
+  const hit = hitTest(e);
+  const changed = JSON.stringify(hit) !== JSON.stringify(hoverEdge);
+  hoverEdge = hit;
+  mainCanvas.style.cursor = hit ? 'pointer' : 'default';
+  if (changed) drawGrid();
+});
+mainCanvas.addEventListener('mouseleave', () => {
+  hoverEdge = null;
+  drawGrid();
+});
+mainCanvas.addEventListener('click', e => {
+  const h = hitTest(e);
+  if (!h) return;
+  if (h.type==='h') toggleH(h.r, h.c);
+  else              toggleV(h.r, h.c);
+  drawGrid();
+});
+
+function hitTest(e) {
+  const rect = mainCanvas.getBoundingClientRect();
+  const mx   = e.clientX - rect.left;
+  const my   = e.clientY - rect.top;
+  const cs   = cellSize;
+  const pad  = editorPad();
+  const RANGE = cs * 0.55; // 辺から±この距離以内を候補にする（大きめ）
+
+  let best = null;
+  let bestDist = Infinity;
+
+  // 横辺: カーソルのy座標との距離で判定
+  for (let r=0; r<=GRID; r++) {
+    for (let c=0; c<GRID; c++) {
+      if (r === GRID) continue;
+      const x1 = pad + c * cs, x2 = pad + (c+1) * cs, y = pad + r * cs;
+      if (mx < x1 || mx > x2) continue;       // x範囲外はスキップ
+      const dist = Math.abs(my - y);
+      if (dist < RANGE && dist < bestDist) {
+        bestDist = dist;
+        best = {type:'h', r, c};
+      }
+    }
+  }
+
+  // 縦辺: カーソルのx座標との距離で判定
+  for (let r=0; r<GRID; r++) {
+    for (let c=0; c<=GRID; c++) {
+      if (c === GRID) continue;
+      const y1 = pad + r * cs, y2 = pad + (r+1) * cs, x = pad + c * cs;
+      if (my < y1 || my > y2) continue;       // y範囲外はスキップ
+      const dist = Math.abs(mx - x);
+      if (dist < RANGE && dist < bestDist) {
+        bestDist = dist;
+        best = {type:'v', r, c};
+      }
+    }
+  }
+
+  return best;
+}
+
+// ================================================================
+// PREVIEW
+// ================================================================
+const previewCanvas = document.getElementById('previewCanvas');
+const pctx          = previewCanvas.getContext('2d');
+
+function updatePreview() {
+  const pw = previewCanvas.parentElement.clientWidth - 24;
+  if (pw < 10) return;
+  const ph = 160;
+  previewCanvas.style.width  = pw + 'px';
+  previewCanvas.style.height = ph + 'px';
+  previewCanvas.width  = Math.round(pw * DPR);
+  previewCanvas.height = Math.round(ph * DPR);
+
+  pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  pctx.clearRect(0, 0, pw, ph);
+
+  // Checker background
+  const t = 7;
+  for (let y=0; y<ph; y+=t)
+    for (let x=0; x<pw; x+=t) {
+      pctx.fillStyle = ((x/t+y/t)%2===0) ? '#f8f8f8' : '#eeeeee';
+      pctx.fillRect(x, y, t, t);
+    }
+
+  const W  = parseInt(document.getElementById('expW').value) || 800;
+  const H  = parseInt(document.getElementById('expH').value) || 600;
+
+  // Scale to fit preview
+  const scale = Math.min((pw-4)/W, (ph-4)/H) * 0.9;
+  const dw    = W * scale;
+  const dh    = H * scale;
+  const ox    = (pw - dw) / 2;
+  const oy    = (ph - dh) / 2;
+
+  const tileSize = Math.min(dw, dh) * (cornerRatio / 100);  // square corner
+  const lw       = strokeRatio * tileSize / GRID;             // line width at preview scale
+  // clamp lw so it's always at least 0.5 (visible)
+  const lwClamped = Math.max(0.5, lw);
+
+  const segs = frameSegs(ox, oy, dw, dh, tileSize, lwClamped, false);
+  drawSegList(pctx, segs);
+
+  // Frame outline
+  pctx.strokeStyle = '#c8c8c4';
+  pctx.lineWidth   = 0.5;
+  pctx.setLineDash([3,3]);
+  pctx.strokeRect(Math.round(ox)+0.5, Math.round(oy)+0.5, Math.round(dw), Math.round(dh));
+  pctx.setLineDash([]);
+}
+
+// ================================================================
+// EXPORT
+// ================================================================
+function exportPNG() {
+  const W   = parseInt(document.getElementById('expW').value) || 800;
+  const H   = parseInt(document.getElementById('expH').value) || 600;
+  const pad = exportPad;
+
+  const tileSize = Math.min(W, H) * (cornerRatio / 100);
+  const lw = Math.round(strokeRatio * tileSize / GRID);
+
+  const oc  = document.createElement('canvas');
+  oc.width  = W + pad*2;
+  oc.height = H + pad*2;
+  const c2d = oc.getContext('2d', { antialias: false });
+  // transparent — no fill
+
+  const segs = frameSegs(pad, pad, W, H, tileSize, lw, false);
+  drawSegList(c2d, segs);
+
+  const a = document.createElement('a');
+  a.download = 'chinese-frame.png';
+  a.href = oc.toDataURL('image/png');
+  a.click();
+}
+
+// ================================================================
+// CONTROLS
+// ================================================================
+function bindRange(rid, nid, lid, fn) {
+  const r = document.getElementById(rid);
+  const n = document.getElementById(nid);
+  function upd(v) {
+    v = Math.max(+r.min, Math.min(+r.max, +v));
+    r.value = v; n.value = v;
+    if (lid) document.getElementById(lid).textContent = v;
+    fn(v);
+  }
+  r.addEventListener('input',  ()=> upd(r.value));
+  n.addEventListener('change', ()=> upd(n.value));
+}
+
+bindRange('sw','swN','swVal', v => { strokeRatio = v/100; resizeMainCanvas(); });
+bindRange('cs','csN','csVal', v => { cellSize    = +v;    resizeMainCanvas(); });
+bindRange('cr','crN','crVal', v => { cornerRatio = +v;    updatePreview(); });
+bindRange('ep','epN','epVal', v => { exportPad   = +v; });
+
+document.getElementById('strokeColor').addEventListener('input', e => {
+  strokeColor = e.target.value; drawGrid();
+});
+['expW','expH'].forEach(id =>
+  document.getElementById(id).addEventListener('change', updatePreview)
+);
+
+// ================================================================
+// PRESETS
+// ================================================================
+function clearAll()        { initEdges(); drawGrid(); }
+function drawOuterBorder() {
+  for (let c=0;c<GRID;c++){ setHEdge(0,c,true); }
+  for (let r=0;r<GRID;r++){ setVEdge(r,0,true); }
+  drawGrid();
+}
+
+const he=(r,c)=>setHEdge(r,c,true);
+const ve=(r,c)=>setVEdge(r,c,true);
+
+// ================================================================
+// INIT
+// ================================================================
+window.addEventListener('load', ()=>{
+  resizeMainCanvas();
+  drawGrid();
+  setTimeout(updatePreview, 100);
+});
+window.addEventListener('resize', updatePreview);
+</script>
+</body>
+</html>
