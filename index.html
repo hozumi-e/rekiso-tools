@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>歴史創作お役立ちツール集</title>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+  <link rel="stylesheet" href="header.css">
   <style>
-    /* ─── 変数 ─────────────────────────────────────── */
     :root {
       --navy:        #2c3e50;
       --bg:          #fff;
@@ -17,10 +17,8 @@
       --shadow-hover:0 8px 28px rgba(44,62,80,.18);
     }
 
-    /* ─── リセット ───────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ─── ページ全体 ─────────────────────────────── */
     body {
       font-family: "Zen Maru Gothic", sans-serif;
       background-color: var(--bg);
@@ -30,77 +28,12 @@
 
     a { text-decoration: none; color: inherit; }
 
-    /* ─── ヘッダー ───────────────────────────────── */
-    header {
-      background: #1a2633;
-      padding: 0;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .header-inner {
-      position: relative;
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 28px 24px 22px;
-      display: flex;
-      align-items: flex-end;
-    }
-
-    .site-title {
-      font-weight: 600;
-      font-size: clamp(22px, 4vw, 36px);
-      color: #fff;
-      letter-spacing: .12em;
-      line-height: 1.2;
-    }
-
-    .site-title a { color: inherit; }
-
-    .header-deco {
-      margin-left: 16px;
-      margin-bottom: 4px;
-      font-size: 11px;
-      color: #c2d9e8;
-      letter-spacing: .18em;
-      opacity: .7;
-      white-space: nowrap;
-    }
-
-    /* ─── ヘッダーナビ ───────────────────────────── */
-    .header-nav {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 0 24px 10px;
-      display: flex;
-    }
-
-    .header-nav a {
-      font-size: 12px;
-      color: rgba(255,255,255,.55);
-      letter-spacing: .08em;
-      padding: 3px 10px 3px 0;
-      border-right: 1px solid rgba(255,255,255,.15);
-      margin-right: 10px;
-      transition: color .18s;
-    }
-
-    .header-nav a:last-child {
-      border-right: none;
-    }
-
-    .header-nav a:hover {
-      color: #fff;
-    }
-
-    /* ─── メイン ─────────────────────────────────── */
     .main-wrapper {
       max-width: 960px;
       margin: 0 auto;
       padding: 28px 20px 60px;
     }
 
-    /* ─── カテゴリフィルター ─────────────────────── */
     .category-filter {
       display: flex;
       flex-wrap: wrap;
@@ -133,13 +66,11 @@
       color: #fff;
     }
 
-    /* ─── ツールグリッド ─────────────────────────── */
     .tools-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
     }
 
-    /* ─── カード ─────────────────────────────────── */
     .tool-card {
       background: #fff;
       border: 1px solid #dedad3;
@@ -164,14 +95,12 @@
 
     .tool-card.hidden { display: none; }
 
-    /* カード上部のカラーバー */
     .tool-card-bar {
       height: 3px;
       background: linear-gradient(90deg, var(--navy), #7ca5bf);
       border-radius: var(--radius) var(--radius) 0 0;
     }
 
-    /* タイトル */
     .tool-card-head {
       padding: 14px 16px 0;
     }
@@ -191,7 +120,6 @@
 
     .tool-card-title a:hover { color: #7ca5bf; }
 
-    /* カテゴリバッジ */
     .tool-card-category {
       display: inline-block;
       font-size: 10px;
@@ -205,7 +133,6 @@
       margin-bottom: 4px;
     }
 
-    /* 説明文 */
     .tool-card-body {
       padding: 0 16px;
       flex: 1;
@@ -217,7 +144,6 @@
       line-height: 1.75;
     }
 
-    /* フッター（日付＋情報ボタン） */
     .tool-card-footer {
       display: flex;
       align-items: center;
@@ -237,7 +163,6 @@
       display: block;
     }
 
-    /* 情報ボタン */
     .info-btn {
       background: none;
       border: 1px solid #dedad3;
@@ -258,7 +183,6 @@
       color: #fff;
     }
 
-    /* ─── 空状態 ──────────────────────────────────── */
     .no-results {
       display: none;
       color: var(--text-sub);
@@ -268,7 +192,6 @@
     }
     .no-results.visible { display: block; }
 
-    /* ─── モーダル ───────────────────────────────── */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -398,7 +321,6 @@
       color: var(--navy);
     }
 
-    /* ─── フッター ───────────────────────────────── */
     footer {
       background: #1a2633;
       color: rgba(255,255,255,.35);
@@ -408,7 +330,6 @@
       padding: 16px 0;
     }
 
-    /* ─── ローディング ───────────────────────────── */
     .loading {
       text-align: center;
       color: #aaa89f;
@@ -416,7 +337,6 @@
       padding: 40px 0;
     }
 
-    /* ─── レスポンシブ ───────────────────────────── */
     @media (max-width: 600px) {
       .header-inner { padding: 20px 16px 16px; }
       .header-deco  { display: none; }
@@ -426,29 +346,19 @@
     }
   </style>
 </head>
+
+<script src="header.js" data-curent="index"></script>
+
 <body>
 
-  <!-- ヘッダー -->
-  <header>
-    <div class="header-inner">
-      <h1 class="site-title"><a href="index.html">歴史創作お役立ちツール集</a></h1>
-      <span class="header-deco">REKISHI SOSAKU TOOLS</span>
-    </div>
-    <nav class="header-nav">
-      <a href="about.html">このサイトについて</a>
-      <a href="https://forms.gle/y3DZGCg9V2dTLKU47" target="_blank">コメント</a>
-    </nav>
-  </header>
+  <div id="site-header"></div>
 
-  <!-- メイン -->
   <div class="main-wrapper">
 
-    <!-- カテゴリフィルター -->
     <div class="category-filter" id="categoryFilter">
       <button class="filter-btn active" data-category="all">すべて</button>
     </div>
 
-    <!-- ツールグリッド -->
     <div class="tools-grid" id="toolsGrid">
       <p class="loading" id="loadingMsg">読み込み中…</p>
     </div>
@@ -457,10 +367,8 @@
 
   </div>
 
-  <!-- フッター -->
   <!--<footer>&copy; 歴史創作お役立ちツール集</footer>-->
 
-  <!-- モーダル -->
   <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
     <div class="modal" id="modal">
       <div class="modal-header">
@@ -506,7 +414,6 @@
 
       document.getElementById("loadingMsg").remove();
 
-      // カテゴリ一覧
       let categories = tools.reduce(function(acc, t) {
         const toolCats = Array.isArray(t.category) ? t.category : [t.category];
         toolCats.forEach(cat => {
@@ -531,7 +438,6 @@
           return a.localeCompare(b, 'ja');
         });
 
-      // カテゴリボタンを追加
       categories.forEach(function(cat) {
         const btn = document.createElement("button");
         btn.className = "filter-btn";
@@ -540,16 +446,13 @@
         filterArea.appendChild(btn);
       });
 
-      // カードを描画
       tools.forEach(function(tool, i) {
         const card = document.createElement("div");
         card.className = "tool-card";
-        // 複数カテゴリ対応：配列をJSON文字列としてdata属性に保存
         const cats = Array.isArray(tool.category) ? tool.category : [tool.category];
         card.dataset.categories = JSON.stringify(cats);
         card.style.animationDelay = (i * 55) + "ms";
 
-        // カテゴリバッジ
         const badgeHtml = cats.map(function(c) {
           return '<span class="tool-card-category">' + c + '</span>';
         }).join(" ");
@@ -611,7 +514,6 @@
       const modalUpd   = document.getElementById("modalUpdated");
       const modalHist  = document.getElementById("modalHistory");
 
-      // 情報ボタンクリック（グリッド全体に委譲）
       grid.addEventListener("click", function(e) {
         if (!e.target.matches(".info-btn")) return;
         const tool = tools[e.target.dataset.index];
@@ -633,7 +535,6 @@
         document.body.style.overflow = "hidden";
       });
 
-      // 閉じる
       function closeModal() {
         overlay.classList.remove("open");
         document.body.style.overflow = "";
