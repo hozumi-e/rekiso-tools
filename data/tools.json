@@ -39,8 +39,8 @@
     "title": "サンプルツール４",
     "desc": "新しいツールを追加するときは、このオブジェクトをコピーして書き換えるだけです。",
     "category": ["名前・人物"],
-    "url": "tools/sample-tool-4/index.html",
-    "published": "2025-03-01",
+    "url": "tools/family_tree_maker.html",
+    "published": "2026-09-28",
     "updated": "2025-03-01",
     "history": [
       { "date": "2025-03-01", "note": "公開" }
