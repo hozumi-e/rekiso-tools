@@ -48,7 +48,6 @@
     }
 
     .site-title {
-      font-family: "Zen Maru Gothic", sans-serif;
       font-weight: 600;
       font-size: clamp(22px, 4vw, 36px);
       color: #fff;
@@ -61,7 +60,6 @@
     .header-deco {
       margin-left: 16px;
       margin-bottom: 4px;
-      font-family: "Zen Maru Gothic", sans-serif;
       font-size: 11px;
       color: #c2d9e8;
       letter-spacing: .18em;
@@ -438,6 +436,7 @@
     </div>
     <nav class="header-nav">
       <a href="about.html">このサイトについて</a>
+      <a href="https://forms.gle/y3DZGCg9V2dTLKU47" target="_blank">コメント</a>
     </nav>
   </header>
 
@@ -505,7 +504,6 @@
       const filterArea = document.getElementById("categoryFilter");
       const noResults  = document.getElementById("noResults");
 
-      // ローディング文字を削除
       document.getElementById("loadingMsg").remove();
 
       // カテゴリ一覧
@@ -517,7 +515,21 @@
         return acc;
       }, []);
 
-      categories.sort((a, b) => a === "その他" ? 1 : b === "その他" ? -1 : 0);
+      const sortOrder = ["おすすめ", "補助ツール", "その他"];
+      categories.sort((a, b) => {
+        const indexA = sortOrder.indexOf(a);
+        const indexB = sortOrder.indexOf(b);
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== -1) {
+            if (a === "おすすめ") return -1; 
+            return 1;
+          }
+          if (indexB !== -1) {
+            if (b === "おすすめ") return 1;
+            return -1;
+          }
+          return a.localeCompare(b, 'ja');
+        });
 
       // カテゴリボタンを追加
       categories.forEach(function(cat) {
@@ -537,7 +549,7 @@
         card.dataset.categories = JSON.stringify(cats);
         card.style.animationDelay = (i * 55) + "ms";
 
-        // カテゴリバッジ（複数対応）
+        // カテゴリバッジ
         const badgeHtml = cats.map(function(c) {
           return '<span class="tool-card-category">' + c + '</span>';
         }).join(" ");
