@@ -55,12 +55,17 @@
     '\n</header>';
 
   /* 挿入先 */
-  var placeholder = document.getElementById("site-header");
-  if (placeholder) {
-    placeholder.outerHTML = headerHtml;
+  function insertHeader() {
+    var placeholder = document.getElementById("site-header");
+    if (placeholder) {
+      placeholder.outerHTML = headerHtml;
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", insertHeader);
   } else {
-    /* #site-header がなければ body 先頭に挿入 */
-    document.body.insertAdjacentHTML("afterbegin", headerHtml);
+    insertHeader();
   }
 
   /* ── 3. 最小化トグル ── */
