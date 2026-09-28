@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="../header.css">
     <style>
         :root { --bg-color: #ffffff; }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       body {
       font-family: "Zen Maru Gothic", sans-serif;
@@ -55,12 +55,17 @@
         #toolbar-advanced summary {
             padding: 4px 14px;
             cursor: pointer;
+            outline: none;
             font-size: 11px;
             color: #aaa;
             user-select: none;
             list-style: none;
-            display: flex;
+            display: block;
             align-items: center;
+        }
+
+        summary::-webkit-details-marker {
+          display: none;
         }
 
         #toolbar-advanced summary:hover { color: #fff; }
@@ -166,7 +171,7 @@
         #canvas-wrapper { transform-origin: top left; display: inline-block; }
         svg { background: var(--bg-color); display: block; }
 
-        /* SVG要素 — stroke系はすべてJSのinline attributeで設定するためCSSに書かない */
+        /* SVG要素 */
         text { shape-rendering: crispEdges; -webkit-font-smoothing: antialiased; cursor: pointer; }
         .node rect { cursor: pointer; }
         .node .memo  { font-size: 11px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; }
@@ -269,7 +274,7 @@
     <div id="toolbar-main">
 
         <div class="tb-group">
-            <span class="tb-label">描画モード</span>
+            <span class="tb-label">バケツモード</span>
             <input type="checkbox" id="paint-mode" title="ONにしてボックスをクリックで色変更">
             <span class="color-wrap">
                 <input type="color" id="paint-color" value="#ffffff" title="塗り色" oninput="syncColorText(this)">
@@ -415,7 +420,7 @@
             <p><b>■ 親子の追加</b><br>
             名前の入力→追加ボタンで追加されます。<br>
             兄弟は、「、」「，」スペースで区切るとまとめて入力できます。</p>
-            <p><b>■ 描画モード</b><br>
+            <p><b>■ バケツモード</b><br>
             チェックをONにして人物ボックスをクリックすると色を変えられます。</p>
             <p><b>■ 姓の一括指定</b><br>
             姓を一括で追加・削除できます。<br>
@@ -423,11 +428,17 @@
             　　　「曹」を追加→「曹操、曹丕」<br>
             　　　「曹」を削除→「操、丕」</p>
             <p><b>■ 詳細設定</b><br>
-            家系図全体のデザインをある程度変更できます。</p>
-            <p><b>■ 保存</b><br>
-            JSONで保存/読み込みができます。<br>
+            家系図全体のデザインをある程度変更できます。<br>
+            　全体：背景色<br>
+            　図：人物ボックスのサイズ、間隔、角丸、線幅と色<br>
+            　文字：色、フォント<br>
+            カラーコード入力をONにすると、カラーコードでの編集ができるようになります。カラーコードの取得には<a href="color_picker.html" target="blank">こちら</a>のツールもおすすめです。</p>
+            <p><b>■ 書き出し</b><br>
             SVG・PNGで書き出しができます。<br>
             名前のフォントサイズを指定し、それをもとにリサイズされます。<br>
+            タイトル・クレジットに入力があると、画像内に反映されます。空欄も可。</p>
+            <p><b>■ 保存</b><br>
+            JSONで保存/読み込みができます。<br>
             JSONには書き出し設定も保存されるので、複数回書き出す場合はテンプレートのファイルを作るなどすると楽かもしれません。</p>
         </div>
         <div style="margin-top:12px; text-align:right;">
@@ -548,6 +559,27 @@
             <label>余白 (mm)</label>
             <input type="number" id="export-padding" value="10" min="0" max="100" style="width:70px;" oninput="config.exportPadding=this.value; updateExportInfo();">
         </div>
+<div class="modal-field">
+    <label>タイトル</label>
+    <input type="text" id="export-title" placeholder="例：○○家系図" style="width:100%;"
+        oninput="config.exportTitle=this.value; updateExportInfo();">
+</div>
+<div class="modal-field">
+    <label>クレジット</label>
+    <input type="text" id="export-credit" placeholder="例：作成：○○" style="width:100%;"
+        oninput="config.exportCredit=this.value; updateExportInfo();">
+</div>
+<div class="modal-field">
+    <label>タイトル・クレジットの位置</label>
+    <label style="font-size:11px; margin-right:12px;">
+        <input type="radio" name="tc-pos" id="tc-pos-top" value="top"
+            onchange="config.exportTcPos=this.value;"> 上
+    </label>
+    <label style="font-size:11px;">
+        <input type="radio" name="tc-pos" id="tc-pos-bottom" value="bottom" checked
+            onchange="config.exportTcPos=this.value;"> 下
+    </label>
+</div>
         <div id="export-info" style="font-size:11px; color:#888; margin-bottom:8px; line-height:1.7;"></div>
         <div class="modal-row">
             <button class="m-btn" onclick="closeExportModal()">キャンセル</button>
@@ -621,13 +653,17 @@
         document.getElementById('color-years-text').value = config.colorYears || '#000000';
         document.getElementById('gap-x').value           = config.gapX       || 40;
         document.getElementById('gap-y').value           = config.gapY       || 70;
-        // --- 追加：書き出しモーダルのUI同期 ---
+        // --- 書き出しモーダルのUI同期 ---
         if(config.exportFormat)   document.getElementById('export-format').value    = config.exportFormat;
         if(config.exportDpi)      document.getElementById('export-dpi').value       = config.exportDpi;
         if(config.exportFontSize) document.getElementById('export-font-size').value = config.exportFontSize;
         if(config.exportFontUnit) document.getElementById('export-font-unit').value = config.exportFontUnit;
         if(config.exportPadding)  document.getElementById('export-padding').value  = config.exportPadding;
         document.documentElement.style.setProperty('--bg-color', config.bgColor || '#ffffff');
+        // --- タイトル・クレジット ---
+        if (config.exportTitle)   document.getElementById('export-title').value  = config.exportTitle;
+        if (config.exportCredit)  document.getElementById('export-credit').value = config.exportCredit;
+        if (config.exportTcPos)   document.getElementById('tc-pos-' + config.exportTcPos).checked = true;
     }
 
     // ========== ZOOM ==========
@@ -794,7 +830,6 @@ let searchHighlightTimer = null;
 function execSearch() {
     const q = document.getElementById('search-input').value.trim();
 
-    // 1. 空入力の処理
     if (!q) {
         lastSearchQuery = "";
         searchResults = [];
@@ -804,7 +839,6 @@ function execSearch() {
         return;
     }
 
-    // 2. 「前と同じワード」かつ「結果が存在する」場合は次へ移動 (searchNextの挙動)
     if (q === lastSearchQuery && searchResults.length > 0) {
         searchIndex = (searchIndex + 1) % searchResults.length;
         updateSearchCount();
@@ -813,8 +847,7 @@ function execSearch() {
         return; 
     }
 
-    // 3. 「新しいワード」の場合は新規検索 (従来のexecSearchの挙動)
-    lastSearchQuery = q; // 現在のワードを保存
+    lastSearchQuery = q;
     searchIndex = 0;
     const lower = q.toLowerCase();
     
@@ -1028,10 +1061,12 @@ function startFadeOut() {
 
     // ========== JSON ==========
     function exportJSON() {
+        const title = (config.exportTitle || '').trim();
+        const fname = title ? title.replace(/[\\/:*?"<>|]/g, '_') + '.json' : 'family_tree.json';
         const blob = new Blob([JSON.stringify({ treeData, config }, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'family_tree.json';
+        a.download = fname;
         a.click();
     }
 
@@ -1106,108 +1141,150 @@ function startFadeOut() {
         if (fmt === 'svg') { saveAsSVG(); } else { saveAsPNG(); }
     }
 
-    // ---- SVG書き出し ----
-    // SVGはpt単位をネイティブサポートする。座標系もpt単位で統一することで
-    // 「フォントサイズ=入力値そのまま」が実現でき、解像度依存の計算が不要になる。
-    function saveAsSVG() {
-        const namePt    = fontSizeToPt();                         // 名前フォント (pt)
-        const memoPt    = namePt * 0.69;
-        const yearsPt   = namePt * 0.63;
-        const paddingMm = parseFloat(document.getElementById('export-padding').value) || 10;
-        const padPt     = paddingMm / 25.4 * 72;                 // mm → pt (1inch=72pt)
+// ---- SVG書き出し ----
+function saveAsSVG() {
+    const namePt    = fontSizeToPt();
+    const memoPt    = namePt * 0.69;
+    const yearsPt   = namePt * 0.63;
+    const paddingMm = parseFloat(document.getElementById('export-padding').value) || 10;
+    const padPt     = paddingMm / 25.4 * 72;
+    const scale     = namePt / 16;
+    const fontVal   = getFontVal();
+    const lwPt      = config.linkWidth * scale;
+    const lc        = config.linkColor;
+    const dashPt    = Math.min(lwPt * 4, 8);
+    const f         = v => v.toFixed(3);
 
-        // 画面座標 (px, 名前=16px) → pt への変換係数
-        // 1px画面 = (namePt / 16) pt 出力
-        const scale = namePt / 16;
+    const bbox  = document.getElementById('nodes-layer').getBBox();
+    const nodeW = config.nodeW * scale;
+    const nodeH = config.nodeH * scale;
+    const gapY  = config.gapY  * scale;
+    const rx    = parseInt(config.radius) * scale;
 
-        const fontVal = getFontVal();
-        // 線幅: 画面上のlinkWidth(px)をscale倍してpt値に
-        const lwPt    = config.linkWidth * scale;
-        const lc      = config.linkColor;
-        // 破線: 線幅の4倍を上限とし、最大8pt固定（スケール非依存で見た目を安定させる）
-        const dashPt  = Math.min(lwPt * 4, 8);
+    // 家系図エリア
+    const treeW = (bbox.x + bbox.width)  * scale + padPt * 2;
+    const treeH = (bbox.y + bbox.height) * scale + padPt * 2;
+    const ox    = padPt - bbox.x * scale;
 
-        const bbox  = document.getElementById('nodes-layer').getBBox();
-        const nodeW = config.nodeW  * scale;   // pt
-        const nodeH = config.nodeH  * scale;   // pt
-        const gapY  = config.gapY   * scale;   // pt
-        const rx    = parseInt(config.radius) * scale;
-        const svgW  = (bbox.x + bbox.width)  * scale + padPt * 2;
-        const svgH  = (bbox.y + bbox.height) * scale + padPt * 2;
-        const ox    = padPt - bbox.x * scale;
-        const oy    = padPt - bbox.y * scale;
+    // タイトル・クレジットブロック
+    const tb = buildTitleBlockPt(namePt, padPt);
 
-        const f = v => v.toFixed(3);  // 小数3桁で整形
-
-        let L = [];
-        L.push('<?xml version="1.0" encoding="UTF-8"?>');
-        L.push('<svg xmlns="http://www.w3.org/2000/svg"'
-            + ' width="'   + f(svgW) + 'pt"'
-            + ' height="'  + f(svgH) + 'pt"'
-            + ' viewBox="0 0 ' + f(svgW) + ' ' + f(svgH) + '"'
-            + ' style="font-family:' + fontVal + ';">');
-        L.push('<rect width="' + f(svgW) + '" height="' + f(svgH) + '" fill="' + (config.bgColor || '#ffffff') + '"/>');
-
-        // リンク
-        treeData.forEach(p => {
-            p.children.forEach(cid => {
-                const child = treeData.find(n => n.id === cid);
-                if (!child) return;
-                const px2  = p.x     * scale + ox;
-                const py2  = p.y     * scale + oy;
-                const cx2  = child.x * scale + ox;
-                const cy2  = child.y * scale + oy;
-                const midY = py2 + nodeH + gapY / 2;
-                const dash = child.lineStyle === 'dashed'
-                    ? ' stroke-dasharray="' + f(dashPt) + ' ' + f(dashPt) + '"'
-                    : '';
-                L.push('<path d="M' + f(px2 + nodeW/2) + ' ' + f(py2 + nodeH)
-                    + ' V' + f(midY)
-                    + ' H' + f(cx2 + nodeW/2)
-                    + ' V' + f(cy2) + '"'
-                    + ' fill="none" stroke="' + lc + '" stroke-width="' + f(lwPt) + '"' + dash + '/>');
-            });
-        });
-
-        // ノード
-        treeData.forEach(p => {
-            const nx   = p.x * scale + ox;
-            const ny   = p.y * scale + oy;
-            const mid  = ny + nodeH / 2;
-            const cx3  = nx + nodeW / 2;
-            const hasTop = !!p.memo;
-            const hasBot = !!p.years;
-
-            L.push('<rect x="' + f(nx) + '" y="' + f(ny) + '" width="' + f(nodeW) + '" height="' + f(nodeH) + '"'
-                + ' rx="' + f(rx) + '" fill="' + (p.color || '#ffffff') + '"'
-                + ' stroke="' + lc + '" stroke-width="' + f(lwPt) + '"/>');
-
-            if (hasTop) {
-                L.push('<text x="' + f(cx3) + '" y="' + f(mid - namePt * 1.1) + '"'
-                    + ' text-anchor="middle" dominant-baseline="middle"'
-                    + ' font-size="' + f(memoPt) + 'pt" font-weight="bold"'
-                    + ' fill="' + config.colorMemo + '">' + escXML(p.memo) + '</text>');
-            }
-            L.push('<text x="' + f(cx3) + '" y="' + f(mid + (hasTop || hasBot ? namePt * 0.1 : 0)) + '"'
-                + ' text-anchor="middle" dominant-baseline="middle"'
-                + ' font-size="' + f(namePt) + 'pt"'
-                + ' fill="' + config.colorName + '">' + escXML(p.name) + '</text>');
-            if (hasBot) {
-                L.push('<text x="' + f(cx3) + '" y="' + f(mid + namePt * 1.2) + '"'
-                    + ' text-anchor="middle" dominant-baseline="middle"'
-                    + ' font-size="' + f(yearsPt) + 'pt"'
-                    + ' fill="' + config.colorYears + '">' + escXML(p.years) + '</text>');
-            }
-        });
-
-        L.push('</svg>');
-        const blob = new Blob([L.join('\n')], { type: 'image/svg+xml;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'family_tree.svg';
-        a.click();
-        closeExportModal();
+    // 全体サイズと各エリアのY開始位置
+    const totalW = treeW;
+    let treeOY, titleOY, totalH;
+    if (!tb) {
+        treeOY = 0; totalH = treeH;
+    } else if (tb.position === 'top') {
+        titleOY = 0; treeOY = tb.blockPt; totalH = treeH + tb.blockPt;
+    } else {
+        treeOY = 0; titleOY = treeH; totalH = treeH + tb.blockPt;
     }
+    const oy = treeOY + padPt - bbox.y * scale;
+
+    let L = [];
+    L.push('<?xml version="1.0" encoding="UTF-8"?>');
+    L.push('<svg xmlns="http://www.w3.org/2000/svg"'
+        + ' width="'  + f(totalW) + 'pt"'
+        + ' height="' + f(totalH) + 'pt"'
+        + ' viewBox="0 0 ' + f(totalW) + ' ' + f(totalH) + '"'
+        + ' style="font-family:' + fontVal + ';">');
+    L.push('<rect width="' + f(totalW) + '" height="' + f(totalH) + '" fill="' + (config.bgColor || '#ffffff') + '"/>');
+
+    // リンク
+    treeData.forEach(p => {
+        p.children.forEach(cid => {
+            const child = treeData.find(n => n.id === cid);
+            if (!child) return;
+            const px2  = p.x     * scale + ox;
+            const py2  = p.y     * scale + oy;
+            const cx2  = child.x * scale + ox;
+            const cy2  = child.y * scale + oy;
+            const midY = py2 + nodeH + gapY / 2;
+            const dash = child.lineStyle === 'dashed'
+                ? ' stroke-dasharray="' + f(dashPt) + ' ' + f(dashPt) + '"' : '';
+            L.push('<path d="M' + f(px2+nodeW/2) + ' ' + f(py2+nodeH)
+                + ' V' + f(midY) + ' H' + f(cx2+nodeW/2) + ' V' + f(cy2) + '"'
+                + ' fill="none" stroke="' + lc + '" stroke-width="' + f(lwPt) + '"' + dash + '/>');
+        });
+    });
+
+    // ノード
+    treeData.forEach(p => {
+        const nx = p.x * scale + ox;
+        const ny = p.y * scale + oy;
+        const mid = ny + nodeH / 2;
+        const cx3 = nx + nodeW / 2;
+        const hasTop = !!p.memo, hasBot = !!p.years;
+        L.push('<rect x="' + f(nx) + '" y="' + f(ny) + '" width="' + f(nodeW) + '" height="' + f(nodeH) + '"'
+            + ' rx="' + f(rx) + '" fill="' + (p.color || '#ffffff') + '"'
+            + ' stroke="' + lc + '" stroke-width="' + f(lwPt) + '"/>');
+        if (hasTop) L.push('<text x="' + f(cx3) + '" y="' + f(mid - namePt*1.1) + '"'
+            + ' text-anchor="middle" dominant-baseline="middle"'
+            + ' font-size="' + f(memoPt) + 'pt" font-weight="bold" fill="' + config.colorMemo + '">' + escXML(p.memo) + '</text>');
+        L.push('<text x="' + f(cx3) + '" y="' + f(mid + (hasTop||hasBot ? namePt*0.1 : 0)) + '"'
+            + ' text-anchor="middle" dominant-baseline="middle"'
+            + ' font-size="' + f(namePt) + 'pt" fill="' + config.colorName + '">' + escXML(p.name) + '</text>');
+        if (hasBot) L.push('<text x="' + f(cx3) + '" y="' + f(mid + namePt*1.2) + '"'
+            + ' text-anchor="middle" dominant-baseline="middle"'
+            + ' font-size="' + f(yearsPt) + 'pt" fill="' + config.colorYears + '">' + escXML(p.years) + '</text>');
+    });
+
+    // タイトル・クレジットブロック
+    if (tb) {
+        const cx = totalW / 2;
+        let curY = titleOY + padPt;
+        tb.lines.forEach((line, i) => {
+            curY += line.pt * 0.5; // dominant-baseline:middleの補正
+            L.push('<text x="' + f(cx) + '" y="' + f(curY) + '"'
+                + ' text-anchor="middle" dominant-baseline="middle"'
+                + ' font-size="' + f(line.pt) + 'pt"'
+                + (line.bold ? ' font-weight="bold"' : ' font-weight="300"')
+                + ' fill="' + lc + '">' + escXML(line.text) + '</text>');
+            curY += line.pt * (i < tb.lines.length - 1 ? 1.1 : 0.5);
+        });
+    }
+
+L.push('</svg>');
+document.fonts.ready.then(() => {
+    const title = (document.getElementById('export-title').value || '').trim();
+    const fname = title ? title.replace(/[\\/:*?"<>|]/g, '_') + '.svg' : 'family_tree.svg';
+    const blob = new Blob([L.join('\n')], { type: 'image/svg+xml;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    a.click();
+    closeExportModal();
+});
+}
+
+
+// タイトル・クレジットのレイアウト情報を返すヘルパー
+// 戻り値: { hasBlock, position('top'|'bottom'), blockPt, lines:[{text,pt,bold}] }
+// SVG用（pt単位）
+function buildTitleBlockPt(namePt, padPt) {
+    const title    = (document.getElementById('export-title').value  || '').trim();
+    const credit   = (document.getElementById('export-credit').value || '').trim();
+    const position = document.querySelector('input[name="tc-pos"]:checked').value;
+
+    if (!title && !credit) return null;
+
+    const titlePt  = namePt * 1.4;
+    const creditPt = namePt;
+
+    let lines = [];
+    if (title && credit) {
+        lines = [
+            { text: title,  pt: titlePt,  bold: true  },
+            { text: credit, pt: creditPt, bold: false },
+        ];
+    } else if (title) {
+        lines = [{ text: title,  pt: titlePt,  bold: true  }];
+    } else {
+        lines = [{ text: credit, pt: creditPt, bold: false }];
+    }
+
+    return { position, lines, blockPt: lines.reduce((a, l) => a + l.pt * 1.6, 0) - lines[lines.length-1].pt * 0.6 + padPt * 2, padPt };
+}
 
     function escXML(s) {
         return String(s)
@@ -1218,69 +1295,133 @@ function startFadeOut() {
     }
 
     // ---- PNG書き出し ----
-function saveAsPNG() {
+async function saveAsPNG() {
     const dpi       = parseInt(document.getElementById('export-dpi').value) || 300;
     const namePt    = fontSizeToPt();
     const namePx    = ptToPx(namePt, dpi);
     const paddingMm = parseFloat(document.getElementById('export-padding').value) || 10;
     const paddingPx = mmToPx(paddingMm, dpi);
     const scale     = namePx / 16;
+    const lc        = config.linkColor;
+    const title     = (document.getElementById('export-title').value || '').trim();
+    const credit    = (document.getElementById('export-credit').value || '').trim();
+    const fontVal = getFontVal();
+    const allText = title + credit + treeData.map(n => n.name + (n.memo||'') + (n.years||'')).join('');
+    if (allText) {
+        try {
+            await document.fonts.load(`16px ${fontVal}`, allText);
+        } catch (e) {
+            console.warn('Font load error:', e);
+        }
+    }
+    await document.fonts.ready;
     closeExportModal();
 
-    const svg  = document.getElementById('svg-canvas');
-    const bbox = document.getElementById('nodes-layer').getBBox();
+    const bbox        = document.getElementById('nodes-layer').getBBox();
+    const nodeW       = config.nodeW  * scale;
+    const nodeH       = config.nodeH  * scale;
+    const radius      = parseInt(config.radius) * scale;
+    const lwScaled    = config.linkWidth * scale;
+    const dashPx      = Math.min(5 * scale, mmToPx(4, dpi));
+    const fontPxName  = namePx;
+    const fontPxMemo  = fontPxName * 0.69;
+    const fontPxYears = fontPxName * 0.63;
 
-    // viewBoxはSVG座標系（scale前）で指定し、width/heightでscale倍を表現する
-    const vbX = Math.round(bbox.x - paddingPx / scale);
-    const vbY = Math.round(bbox.y - paddingPx / scale);
-    const vbW = Math.round(bbox.width  + (paddingPx / scale) * 2);
-    const vbH = Math.round(bbox.height + (paddingPx / scale) * 2);
-    const canvasW = Math.ceil(vbW * scale);
-    const canvasH = Math.ceil(vbH * scale);
+    const tbPt = buildTitleBlockPt(namePt, paddingMm / 25.4 * 72);
+    const tbPx = tbPt ? Math.ceil(tbPt.blockPt / 72 * dpi) : 0;
 
-    // CSSで定義されているスタイルをインライン化してシリアライズ時に失われないよう埋め込む
-    const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
-    style.textContent = `
-        text { font-family: ${getFontVal()}; shape-rendering: crispEdges; -webkit-font-smoothing: antialiased;}
-        .link { fill: none; shape-rendering: crispEdges; }
-        .node .memo  { font-size: 11px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; }
-        .node .name  { font-size: 16px; text-anchor: middle; dominant-baseline: middle; }
-        .node .years { font-size: 10px; text-anchor: middle; dominant-baseline: middle; }
-        svg { image-rendering: -webkit-optimize-contrast; }
-    `;
-    svg.insertBefore(style, svg.firstChild);
-
-    const origW  = svg.getAttribute('width');
-    const origH  = svg.getAttribute('height');
-    const origVB = svg.getAttribute('viewBox');
-    svg.setAttribute('width',   canvasW);
-    svg.setAttribute('height',  canvasH);
-    svg.setAttribute('viewBox', vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH);
-
-    const svgData = new XMLSerializer().serializeToString(svg);
-
-    // 属性を元に戻す
-    svg.removeChild(style);
-    svg.setAttribute('width',   origW);
-    svg.setAttribute('height',  origH);
-    if (origVB) svg.setAttribute('viewBox', origVB);
-    else        svg.removeAttribute('viewBox');
+    const treeCanvasW = Math.ceil((bbox.x + bbox.width)  * scale + paddingPx * 2);
+    const treeCanvasH = Math.ceil((bbox.y + bbox.height) * scale + paddingPx * 2);
+    const canvasW     = treeCanvasW;
+    const canvasH     = treeCanvasH + tbPx;
+    const treeOY      = (!tbPt || tbPt.position === 'bottom') ? 0 : tbPx;
+    const titleOY     = (!tbPt || tbPt.position === 'top')    ? 0 : treeCanvasH;
+    const ox          = paddingPx - bbox.x * scale;
+    const oy          = treeOY + paddingPx - bbox.y * scale;
 
     const canvas = document.createElement('canvas');
     canvas.width  = canvasW;
     canvas.height = canvasH;
     const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.onload = () => {
-        ctx.fillStyle = config.bgColor || '#ffffff';
-        ctx.fillRect(0, 0, canvasW, canvasH);
-        ctx.drawImage(img, 0, 0);
-        const a = document.createElement('a');
-        a.href     = canvas.toDataURL('image/png');
-        a.download = 'family_tree.png';
-        a.click();
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+
+    // 背景
+    ctx.fillStyle = config.bgColor || '#ffffff';
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    // リンク
+    ctx.strokeStyle = lc;
+    ctx.lineWidth   = lwScaled;
+    treeData.forEach(p => {
+        p.children.forEach(cid => {
+            const child = treeData.find(n => n.id === cid);
+            if (!child) return;
+            const px2  = Math.round(p.x     * scale + ox);
+            const py2  = Math.round(p.y     * scale + oy);
+            const cx2  = Math.round(child.x * scale + ox);
+            const cy2  = Math.round(child.y * scale + oy);
+            const midY = Math.round(py2 + nodeH + (config.gapY * scale) / 2);
+            ctx.setLineDash(child.lineStyle === 'dashed' ? [dashPx, dashPx] : []);
+            ctx.beginPath();
+            ctx.moveTo(px2 + nodeW/2, py2 + nodeH);
+            ctx.lineTo(px2 + nodeW/2, midY);
+            ctx.lineTo(cx2 + nodeW/2, midY);
+            ctx.lineTo(cx2 + nodeW/2, cy2);
+            ctx.stroke();
+        });
+    });
+    ctx.setLineDash([]);
+
+    // ノード
+    treeData.forEach(p => {
+        const nx = Math.round(p.x * scale + ox);
+        const ny = Math.round(p.y * scale + oy);
+        ctx.fillStyle = p.color || '#ffffff';
+        drawRoundRect(ctx, nx, ny, nodeW, nodeH, radius);
+        ctx.fill();
+        ctx.strokeStyle = lc;
+        ctx.lineWidth   = lwScaled;
+        drawRoundRect(ctx, nx, ny, nodeW, nodeH, radius);
+        ctx.stroke();
+
+        const mid    = ny + nodeH / 2;
+        const cx3    = nx + nodeW / 2;
+        const hasTop = !!p.memo, hasBot = !!p.years;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        if (hasTop) {
+            ctx.fillStyle = config.colorMemo;
+            ctx.font = 'bold ' + fontPxMemo.toFixed(1) + 'px ' + fontVal;
+            ctx.fillText(p.memo, cx3, Math.round(mid - fontPxName * 1.1));
+        }
+        ctx.fillStyle = config.colorName;
+        ctx.font = fontPxName.toFixed(1) + 'px ' + fontVal;
+        ctx.fillText(p.name, cx3, Math.round(mid + (hasTop || hasBot ? fontPxName * 0.1 : 0)));
+        if (hasBot) {
+            ctx.fillStyle = config.colorYears;
+            ctx.font = fontPxYears.toFixed(1) + 'px ' + fontVal;
+            ctx.fillText(p.years, cx3, Math.round(mid + fontPxName * 1.2));
+        }
+    });
+
+    // タイトル・クレジット
+    if (tbPt) {
+        const cx = canvasW / 2;
+        let curY = titleOY + paddingPx;
+        tbPt.lines.forEach((line, i) => {
+            const linePx = line.pt / 72 * dpi;
+            curY += linePx * 0.5;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = lc;
+            ctx.font = (line.bold ? 'bold ' : '300 ') + linePx.toFixed(1) + 'px ' + fontVal;
+            ctx.fillText(line.text, cx, Math.round(curY));
+            curY += linePx * (i < tbPt.lines.length - 1 ? 1.1 : 0.5);
+        });
+    }
+
+    const fname = title ? title.replace(/[\\/:*?"<>|]/g, '_') + '.png' : 'family_tree.png';
+    const a = document.createElement('a');
+    a.href     = canvas.toDataURL('image/png');
+    a.download = fname;
+    a.click();
 }
 
     // 角丸矩形パスヘルパー
