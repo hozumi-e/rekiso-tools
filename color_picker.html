@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Picker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #141414;
+    --surface: #1e1e1e;
+    --surface2: #282828;
+    --border: #333;
+    --text: #e8e8e8;
+    --text-dim: #666;
+    --accent: #f0f0f0;
+    --radius: 10px;
+    --transition-theme: background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+
+  body.light {
+    --bg: #ffffff;
+    --surface: #f2f2f2;
+    --surface2: #e8e8e8;
+    --border: #ddd;
+    --text: #1a1a1a;
+    --text-dim: #999;
+    --accent: #111;
+  }
+
+  body { transition: var(--transition-theme); }
+  #color-info, .ctrl-btn, #toast { transition: var(--transition-theme); }
+
+  /* ── Theme Toggle ── */
+  #theme-toggle-wrap {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  #theme-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 52px;
+    height: 28px;
+    border-radius: 14px;
+    background: #333;
+    border: 1.5px solid #444;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.25s, border-color 0.25s;
+    outline: none;
+    display: block;
+  }
+
+  #theme-toggle::before {
+    content: '🌙';
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    line-height: 20px;
+    text-align: center;
+    transition: transform 0.25s, background 0.25s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  body.light #theme-toggle {
+    background: #ddd;
+    border-color: #ccc;
+  }
+  body.light #theme-toggle::before {
+    content: '☀︎';
+    background: #fff;
+    transform: translateX(24px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+
+  /* header row */
+  #header-row {
+    width: 100%;
+    max-width: 860px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 36px;
+  }
+  #header-row h1 { margin-bottom: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+
+  h1 {
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 36px;
+  }
+
+  /* ── Picker Area ── */
+  #picker-wrap {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    margin-bottom: 28px;
+    user-select: none;
+  }
+
+  #hue-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    cursor: crosshair;
+    border-radius: 50%;
+  }
+
+  #sv-canvas {
+    position: absolute;
+    border-radius: 4px;
+    cursor: crosshair;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Hue thumb */
+  #hue-thumb {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2.5px solid #fff;
+    background: transparent;
+    box-shadow: 0 0 0 1.5px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.15);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    top: 50%; left: 50%;
+  }
+
+  /* SV thumb */
+  #sv-thumb {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2.5px solid #fff;
+    box-shadow: 0 0 0 1.5px rgba(0,0,0,0.5);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+
+  /* ── Color Info ── */
+  #color-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    width: 360px;
+  }
+
+  #preview-swatch {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    transition: background-color 0.08s;
+  }
+
+  #hex-display {
+    flex: 1;
+    padding: 0 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    background: none;
+    border: none;
+    outline: none;
+    width: 0;
+    min-width: 0;
+    caret-color: var(--text);
+  }
+  #hex-display::selection { background: rgba(255,255,255,0.15); }
+  #hex-display:focus { color: #fff; }
+
+  #copy-btn {
+    background: none;
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 0 16px;
+    height: 52px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: color 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+  #copy-btn:hover { color: var(--text); background: var(--surface2); }
+  #copy-btn.copied { color: #7ecb7e; }
+
+  /* ── Palette Controls ── */
+  #palette-controls {
+    display: flex;
+    align-items: center;
+    width: 360px;
+    margin-bottom: 20px;
+  }
+
+  #palette-controls span {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    flex: 1;
+  }
+
+  .ctrl-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ctrl-btn:hover { background: var(--surface2); border-color: #555; }
+  .ctrl-btn:disabled { opacity: 0.25; cursor: default; }
+
+  #delete-btn {
+    margin-right: 8px;
+    color: #c07070;
+    border-color: #3a2828;
+  }
+  #delete-btn:hover:not(:disabled) { background: #2a1f1f; border-color: #6a3535; }
+
+  /* ── Palette ── */
+  #palette-outer {
+    width: 100%;
+    max-width: 860px;
+    overflow: hidden;
+  }
+
+  #palette {
+    display: flex;
+    flex-wrap: wrap;
+    /* no gap — using margin instead */
+  }
+
+  .swatch-wrap {
+    margin: 0 8px 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .swatch {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+    flex-shrink: 0;
+  }
+
+  .swatch-wrap:hover .swatch { transform: translateY(-2px); }
+
+  .swatch-wrap.active .swatch {
+    border-color: rgba(255,255,255,0.75);
+    box-shadow: 0 0 12px rgba(255,255,255,0.25), 0 0 0 1px rgba(255,255,255,0.1);
+  }
+
+  .swatch-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9.5px;
+    color: var(--text-dim);
+    margin-top: 5px;
+    letter-spacing: 0.04em;
+    text-align: center;
+    transition: color 0.12s;
+  }
+  .swatch-wrap.active .swatch-label { color: var(--text); }
+  .swatch-wrap:hover .swatch-label { color: #aaa; }
+
+  /* ── Toast light mode ── */
+  body.light #toast {
+    background: #1a1a1a;
+    border-color: #333;
+    color: #f0f0f0;
+  }
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 10px 20px;
+    border-radius: 40px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div id="header-row">
+  <h1>Color Picker</h1>
+  <div id="theme-toggle-wrap">
+    <input type="checkbox" id="theme-toggle" title="Toggle light/dark mode">
+  </div>
+</div>
+
+<div id="picker-wrap">
+  <canvas id="hue-canvas" width="360" height="360"></canvas>
+  <canvas id="sv-canvas"></canvas>
+  <div id="hue-thumb"></div>
+  <div id="sv-thumb"></div>
+</div>
+
+<div id="color-info">
+  <div id="preview-swatch"></div>
+  <input id="hex-display" type="text" value="#000000" maxlength="7" spellcheck="false" autocomplete="off">
+  <button id="copy-btn">Copy</button>
+</div>
+
+<div id="palette-controls">
+  <span>Palette</span>
+  <button class="ctrl-btn" id="add-btn" title="Add">+</button>
+  <button class="ctrl-btn" id="delete-btn" title="Delete">−</button>
+</div>
+
+<div id="palette-outer">
+  <div id="palette"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────
+function hsvToRgb(h, s, v) {
+  let r, g, b;
+  const i = Math.floor(h / 60) % 6;
+  const f = h / 60 - Math.floor(h / 60);
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  switch (i) {
+    case 0: [r,g,b]=[v,t,p]; break;
+    case 1: [r,g,b]=[q,v,p]; break;
+    case 2: [r,g,b]=[p,v,t]; break;
+    case 3: [r,g,b]=[p,q,v]; break;
+    case 4: [r,g,b]=[t,p,v]; break;
+    case 5: [r,g,b]=[v,p,q]; break;
+  }
+  return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+}
+
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  const d = max - min;
+  let h = 0, s = max === 0 ? 0 : d / max, v = max;
+  if (d !== 0) {
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return [h * 360, s, v];
+}
+
+function toHex(r, g, b) {
+  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+function hexToRgb(hex) {
+  const m = hex.replace('#','').match(/.{2}/g);
+  return m ? m.map(x => parseInt(x,16)) : [0,0,0];
+}
+
+// ─────────────────────────────────────────
+// State
+// ─────────────────────────────────────────
+let hue = 210, sat = 0.7, val = 0.85;
+let activeIdx = 0;
+let palette = [{ h: hue, s: sat, v: val }];
+
+// ─────────────────────────────────────────
+// Canvas setup
+// ─────────────────────────────────────────
+const hueCanvas = document.getElementById('hue-canvas');
+const hueCtx    = hueCanvas.getContext('2d');
+const svCanvas  = document.getElementById('sv-canvas');
+const svCtx     = svCanvas.getContext('2d');
+const OUTER_R   = 180; // half of 360
+const RING_W    = 28;
+const INNER_R   = OUTER_R - RING_W - 6;
+const SV_SIZE   = Math.floor(INNER_R * Math.SQRT2 * 0.92);
+
+svCanvas.width  = SV_SIZE;
+svCanvas.height = SV_SIZE;
+
+// Draw hue ring
+function drawHueRing() {
+  hueCtx.clearRect(0,0,360,360);
+  const cx = OUTER_R, cy = OUTER_R;
+  const steps = 360;
+  for (let i = 0; i < steps; i++) {
+    const a0 = (i - 0.5) * Math.PI / 180;
+    const a1 = (i + 1.5) * Math.PI / 180;
+    hueCtx.beginPath();
+    hueCtx.moveTo(cx, cy);
+    hueCtx.arc(cx, cy, OUTER_R, a0, a1);
+    hueCtx.closePath();
+    hueCtx.fillStyle = `hsl(${i},100%,50%)`;
+    hueCtx.fill();
+  }
+  // cut inner circle
+  hueCtx.globalCompositeOperation = 'destination-out';
+  hueCtx.beginPath();
+  hueCtx.arc(cx, cy, OUTER_R - RING_W, 0, Math.PI * 2);
+  hueCtx.fillStyle = 'rgba(0,0,0,1)';
+  hueCtx.fill();
+  hueCtx.globalCompositeOperation = 'source-over';
+}
+
+function drawSV() {
+  const sz = SV_SIZE;
+  // base hue
+  const [hr,hg,hb] = hsvToRgb(hue, 1, 1);
+  const baseColor  = `rgb(${hr},${hg},${hb})`;
+
+  // white gradient (left→right)
+  const gW = svCtx.createLinearGradient(0,0,sz,0);
+  gW.addColorStop(0, 'rgba(255,255,255,1)');
+  gW.addColorStop(1, 'rgba(255,255,255,0)');
+
+  // black gradient (top→bottom)
+  const gB = svCtx.createLinearGradient(0,0,0,sz);
+  gB.addColorStop(0, 'rgba(0,0,0,0)');
+  gB.addColorStop(1, 'rgba(0,0,0,1)');
+
+  svCtx.fillStyle = baseColor;
+  svCtx.fillRect(0,0,sz,sz);
+  svCtx.fillStyle = gW;
+  svCtx.fillRect(0,0,sz,sz);
+  svCtx.fillStyle = gB;
+  svCtx.fillRect(0,0,sz,sz);
+}
+
+// ─────────────────────────────────────────
+// Thumb placement
+// ─────────────────────────────────────────
+const hueThumb = document.getElementById('hue-thumb');
+const svThumb  = document.getElementById('sv-thumb');
+
+function placeHueThumb() {
+  const rad    = hue * Math.PI / 180;
+  const r      = OUTER_R - RING_W / 2;
+  const x      = OUTER_R + r * Math.cos(rad);
+  const y      = OUTER_R + r * Math.sin(rad);
+  hueThumb.style.left = x + 'px';
+  hueThumb.style.top  = y + 'px';
+  hueThumb.style.background = `hsl(${hue},100%,50%)`;
+}
+
+function placeSVThumb() {
+  const sz    = SV_SIZE;
+  const svOff = (OUTER_R * 2 - sz) / 2; // offset inside picker-wrap
+  const px    = svOff + sat * sz;
+  const py    = svOff + (1 - val) * sz;
+  svThumb.style.left = px + 'px';
+  svThumb.style.top  = py + 'px';
+  const [r,g,b] = hsvToRgb(hue, sat, val);
+  svThumb.style.background = `rgb(${r},${g},${b})`;
+}
+
+// ─────────────────────────────────────────
+// UI update
+// ─────────────────────────────────────────
+const previewSwatch = document.getElementById('preview-swatch');
+const hexDisplay    = document.getElementById('hex-display');
+
+function currentHex() {
+  const [r,g,b] = hsvToRgb(hue, sat, val);
+  return toHex(r,g,b);
+}
+
+function updateUI() {
+  const hex = currentHex();
+  previewSwatch.style.background = hex;
+  hexDisplay.value = hex;
+  drawSV();
+  placeHueThumb();
+  placeSVThumb();
+  // sync active palette swatch
+  palette[activeIdx] = { h: hue, s: sat, v: val };
+  renderPalette();
+}
+
+// ─────────────────────────────────────────
+// Palette
+// ─────────────────────────────────────────
+const paletteEl  = document.getElementById('palette');
+const deleteBtn  = document.getElementById('delete-btn');
+
+function renderPalette() {
+  // Rebuild only if count changed, else update colors
+  const existing = paletteEl.querySelectorAll('.swatch-wrap');
+  if (existing.length !== palette.length) {
+    paletteEl.innerHTML = '';
+    palette.forEach((_, i) => addSwatchEl(i));
+  }
+  paletteEl.querySelectorAll('.swatch-wrap').forEach((wrap, i) => {
+    const [r,g,b] = hsvToRgb(palette[i].h, palette[i].s, palette[i].v);
+    const hex = toHex(r,g,b);
+    wrap.querySelector('.swatch').style.background = hex;
+    wrap.querySelector('.swatch-label').textContent = hex;
+    wrap.classList.toggle('active', i === activeIdx);
+  });
+  deleteBtn.disabled = (palette.length <= 1);
+}
+
+function addSwatchEl(i) {
+  const wrap  = document.createElement('div');
+  wrap.className = 'swatch-wrap';
+  wrap.dataset.idx = i;
+
+  const sw    = document.createElement('div');
+  sw.className = 'swatch';
+
+  const lbl   = document.createElement('div');
+  lbl.className = 'swatch-label';
+
+  wrap.appendChild(sw);
+  wrap.appendChild(lbl);
+  paletteEl.appendChild(wrap);
+
+  wrap.addEventListener('click', () => {
+    const idx = parseInt(wrap.dataset.idx);
+    const hex = wrap.querySelector('.swatch-label').textContent;
+    if (idx !== activeIdx) {
+      // select and load into picker
+      activeIdx = idx;
+      const p = palette[idx];
+      hue = p.h; sat = p.s; val = p.v;
+      updateUI();
+    }
+    // always copy (immediate — genuine tap gesture)
+    copyToClipboard(hex, true);
+  });
+}
+
+// Re-index after structural change
+function rebuildPalette() {
+  paletteEl.innerHTML = '';
+  palette.forEach((_, i) => addSwatchEl(i));
+  renderPalette();
+}
+
+document.getElementById('add-btn').addEventListener('click', () => {
+  palette.push({ h: hue, s: sat, v: val });
+  activeIdx = palette.length - 1;
+  rebuildPalette();
+});
+
+deleteBtn.addEventListener('click', () => {
+  if (palette.length <= 1) return;
+  palette.splice(activeIdx, 1);
+  activeIdx = Math.min(activeIdx, palette.length - 1);
+  const p = palette[activeIdx];
+  hue = p.h; sat = p.s; val = p.v;
+  rebuildPalette();
+  updateUI();
+});
+
+// ─────────────────────────────────────────
+// Copy
+// ─────────────────────────────────────────
+// On mobile, clipboard.writeText only works in a user-gesture handler.
+// We queue copies triggered during touchmove and flush them on touchend.
+let pendingCopy = null;
+
+function copyToClipboard(text, immediate) {
+  if (!immediate) {
+    // Called from drag — queue and let touchend flush
+    pendingCopy = text;
+    showToast(text + ' copied');
+    return;
+  }
+  _doWrite(text);
+  showToast(text + ' copied');
+}
+
+function _doWrite(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => _fallback(text));
+  } else {
+    _fallback(text);
+  }
+}
+
+function _fallback(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+const copyBtn = document.getElementById('copy-btn');
+copyBtn.addEventListener('click', () => {
+  _doWrite(currentHex());
+  showToast(currentHex() + ' copied');
+  copyBtn.textContent = 'Copied';
+  copyBtn.classList.add('copied');
+  setTimeout(() => {
+    copyBtn.textContent = 'Copy';
+    copyBtn.classList.remove('copied');
+  }, 1200);
+});
+
+// ─────────────────────────────────────────
+// Hex input
+// ─────────────────────────────────────────
+hexDisplay.addEventListener('input', () => {
+  let v = hexDisplay.value;
+  if (!v.startsWith('#')) { v = '#' + v.replace(/#/g, ''); hexDisplay.value = v; }
+});
+
+hexDisplay.addEventListener('change', applyHexInput);
+hexDisplay.addEventListener('keydown', e => { if (e.key === 'Enter') { applyHexInput(); hexDisplay.blur(); } });
+
+function applyHexInput() {
+  const raw = hexDisplay.value.trim();
+  const full = /^#[0-9a-fA-F]{6}$/.test(raw) ? raw
+             : /^#[0-9a-fA-F]{3}$/.test(raw)
+               ? '#' + raw[1]+raw[1]+raw[2]+raw[2]+raw[3]+raw[3]
+             : null;
+  if (!full) { hexDisplay.value = currentHex(); return; }
+  const [r,g,b] = hexToRgb(full);
+  [hue, sat, val] = rgbToHsv(r, g, b);
+  palette[activeIdx] = { h: hue, s: sat, v: val };
+  updateUI();
+  _doWrite(full.toLowerCase());
+  showToast(full.toLowerCase() + ' copied');
+}
+
+// ─────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────
+const toast = document.getElementById('toast');
+let toastTimer;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+// ─────────────────────────────────────────
+// Drag logic
+// ─────────────────────────────────────────
+let dragging = null; // 'hue' | 'sv'
+let isTouch = false; // true during touch-initiated drag
+
+function getPickerWrapRect() {
+  return document.getElementById('picker-wrap').getBoundingClientRect();
+}
+
+function onHueDrag(e) {
+  const rect = getPickerWrapRect();
+  const cx = rect.left + OUTER_R;
+  const cy = rect.top  + OUTER_R;
+  const dx = e.clientX - cx;
+  const dy = e.clientY - cy;
+  hue = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+  palette[activeIdx].h = hue;
+  updateUI();
+  copyToClipboard(currentHex(), !isTouch);
+}
+
+function onSVDrag(e) {
+  const rect = getPickerWrapRect();
+  const svOff = (OUTER_R * 2 - SV_SIZE) / 2;
+  const ox = rect.left + svOff;
+  const oy = rect.top  + svOff;
+  sat = Math.max(0, Math.min(1, (e.clientX - ox) / SV_SIZE));
+  val = Math.max(0, Math.min(1, 1 - (e.clientY - oy) / SV_SIZE));
+  palette[activeIdx].s = sat;
+  palette[activeIdx].v = val;
+  updateUI();
+  copyToClipboard(currentHex(), !isTouch);
+}
+
+hueCanvas.addEventListener('mousedown', e => {
+  const rect = getPickerWrapRect();
+  const cx = e.clientX - rect.left - OUTER_R;
+  const cy = e.clientY - rect.top  - OUTER_R;
+  const dist = Math.sqrt(cx*cx + cy*cy);
+  if (dist >= OUTER_R - RING_W - 2 && dist <= OUTER_R + 2) {
+    isTouch = false;
+    dragging = 'hue';
+    onHueDrag(e);
+  }
+});
+
+svCanvas.addEventListener('mousedown', e => {
+  isTouch = false;
+  dragging = 'sv';
+  onSVDrag(e);
+});
+
+document.addEventListener('mousemove', e => {
+  if (dragging === 'hue') onHueDrag(e);
+  else if (dragging === 'sv') onSVDrag(e);
+});
+
+document.addEventListener('mouseup', () => { dragging = null; });
+
+// Touch support
+function toMouse(e) {
+  return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+}
+
+hueCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const rect = getPickerWrapRect();
+  const me = toMouse(e);
+  const cx = me.clientX - rect.left - OUTER_R;
+  const cy = me.clientY - rect.top  - OUTER_R;
+  const dist = Math.sqrt(cx*cx + cy*cy);
+  if (dist >= OUTER_R - RING_W - 2 && dist <= OUTER_R + 2) {
+    isTouch = true;
+    dragging = 'hue';
+    onHueDrag(me);
+  }
+}, { passive: false });
+
+svCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  isTouch = true;
+  dragging = 'sv';
+  onSVDrag(toMouse(e));
+}, { passive: false });
+
+document.addEventListener('touchmove', e => {
+  if (dragging) { e.preventDefault(); }
+  if (dragging === 'hue') onHueDrag(toMouse(e));
+  else if (dragging === 'sv') onSVDrag(toMouse(e));
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
+  if (pendingCopy) {
+    _doWrite(pendingCopy);
+    pendingCopy = null;
+  }
+  dragging = null;
+  isTouch = false;
+});
+
+// ─────────────────────────────────────────
+// Theme toggle
+// ─────────────────────────────────────────
+const themeToggle = document.getElementById('theme-toggle');
+themeToggle.addEventListener('change', () => {
+  document.body.classList.toggle('light', themeToggle.checked);
+});
+
+// ─────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────
+drawHueRing();
+rebuildPalette();
+updateUI();
+</script>
+</body>
+</html>
