@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+<link rel="stylesheet" href="../header.css">
+<title>年齢・元号早見表</title>
+<style>
+:root {
+  /* ── ベース ── */
+  --bg:       #ffffff;
+  --surface:  #f8f9fb;
+  --border:   #d0d4dc;
+  --text:     #1a1d23;
+  --text-l:   #dee1e9;
+  --muted:    #6b7280;
+  --hover-bg: rgba(0,0,0,.06);
+
+  --accent:   #2e3570;
+  --accent-s: #699ae0;
+  --accent-y: #f0c040;
+
+  /* ── タブ ── */
+  --tab-bg:   #111318;
+  --tab-fg:   #9aa3b0;
+  --tab-act-bg: #ffffff;
+  --tab-act-fg: #1e4fb4;
+
+  /* ── 表ヘッダー ── */
+  --hbg:      #1c1f26;   /* 1行目 */
+  --hbg2:     #2a2e38;   /* 2行目 */
+  --hfg:      #e8eaed;   /* ヘッダー文字 */
+  --sbg:      #f0f2f4;   /* 年列背景 */
+
+  /* ── ホバー overlay ── */
+  --row-hover:    rgba(0,0,0,.09);
+  --row-hover-sc: rgba(0,0,0,.04);
+
+  /* ── 機能色 ── */
+  --danger:   #c0392b;
+  --danger-h: #e74c3c;
+  --faded:    #b0b8c8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family: Zen Maru Gothic, sans-serif;}
+#tool-container{background:var(--bg);color:var(--text);margin:16px;}
+#tool-h1{font-size:1.65em;letter-spacing:.12em;color:var(--accent);margin-bottom:10px;}
+.guide{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.76em;line-height:1.6;color:var(--muted);}
+.guide b{color:var(--accent);}
+.guide p{padding:3px;}
+.guide summary{outline:none;cursor:pointer;}
+
+/* tabs */
+.tabs{display:flex;margin-bottom:-1px;}
+.tabs.collapsed{margin-bottom:14px;}
+.tab-btn{padding:6px 15px;border:1px solid var(--tab-bg);border-bottom:none;background:var(--tab-bg);cursor:pointer;font-size:.78em;border-radius:6px 6px 0 0;color:var(--tab-fg);margin-right:3px;}
+.tab-btn.active{background:#1a1d24;color:#e8eaed;font-weight:700;border-color:#1a1d24;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.tab-panel.active:first-of-type .panel-box{ border-radius:0 8px 8px 8px; }
+.panel-box{background:#1a1d24;border:1px solid #2e3240;border-radius:0 8px 8px 8px;padding:12px;margin-bottom:14px;}
+.panel-box,.panel-box label,.panel-box span{color:#c8cdd8;}
+.panel-box input[type=text],.panel-box input[type=number],.panel-box .dyn-search{background:#22262f;border-color:#3a3f50;color:#e0e4ec;}
+.panel-box .person-card{background:#22262f;border-color:#2e3240;border-top-color:var(--accent-s);}
+.panel-box .move-btn{background:#22262f;border-color:#3a3f50;color:#8891a0;}
+.panel-box .move-btn:hover{border-color:var(--accent-s);color:var(--accent-s);}
+.panel-box .dyn-era-group details{border-color:#3a3f50;}
+.panel-box .dyn-era-group summary{background:#22262f;color:var(--text-l);}
+.panel-box .dyn-era-group summary:hover{background:#2a2e3a;}
+.panel-box .dyn-item{color:var(--text-l);}
+.panel-box .dyn-item:hover{background:rgba(255,255,255,.07);}
+.panel-box .btn-outline{border-color:#3a3f50;color:#c8cdd8;}
+.panel-box .btn-outline:hover{border-color:var(--accent-s);color:var(--accent-s);}
+
+/* buttons */
+.btn{padding:7px 16px;border:2px solid var(--accent-s);border-radius:6px;cursor:pointer;font-size:.8em;font-weight:500;transition:all .15s;letter-spacing:.04em;}
+.btn-primary{background:rgba(105,154,224,.2);color:var(--hfg);}
+.btn-primary:hover{background:var(--accent-s);transform:translateY(-1px);}
+.btn-danger{background:var(--danger);color:#fff;border:none;}
+.btn-danger:hover{background:var(--danger-h);}
+.btn-sm{padding:3px 9px;font-size:.73em;border-radius:4px;}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.controls-bar > *{margin-right:7px;margin-bottom:4px;}
+
+/* person cards */
+.cards-wrap > *{margin-right:10px;margin-bottom:10px;}
+.person-card{display: inline-block;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:8px;padding:10px 12px;min-width:190px;}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.field-row{display:flex;align-items:center;font-size:.79em;margin-bottom:5px;}
+.field-row > *{margin-right:6px;}
+.field-row label{width:40px;color:var(--text-l);flex-shrink:0;margin-right:0;}
+.field-row input[type=number]{width:68px;}
+.field-row input[type=text]{width:108px;}
+.move-btns{display:flex;margin-left:3px;}
+.move-btns > *{margin:0 3px;}
+.move-btn{padding:2px 6px;font-size:.7em;border:1px solid var(--border);border-radius:3px;background:var(--bg);cursor:pointer;color:var(--muted);line-height:1;}
+.move-btn:hover{border-color:var(--accent);color:var(--accent);}
+.error-msg{color:var(--danger);font-size:.71em;margin-top:2px;}
+
+/* dynasty selector */
+.dyn-selector{display:flex;flex-direction:column;}
+.dyn-era-group{margin-bottom:6px;}
+.dyn-era-group details{border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.dyn-era-group summary{
+  font-size:.8em;font-weight:700;color:var(--text-l);
+  padding:5px 10px;cursor:pointer;user-select:none;
+  background:var(--sbg);list-style:none;
+  display:flex;align-items:center;
+}
+.dyn-era-group summary::-webkit-details-marker{display:none;}
+.dyn-era-group summary::marker{display:none;}
+.dyn-era-group summary:hover{background:var(--border);}
+.dyn-toggle-arrow{display:inline-block;font-size:.65em;opacity:.6;margin-right:6px;transition:transform .2s;}
+.dyn-checkbox-list{display:flex;flex-direction:column;padding:4px 8px;}
+.dyn-item{display:flex;align-items:center;font-size:.78em;cursor:pointer;padding:2px 4px;border-radius:3px;white-space:nowrap;margin-bottom:1px;}
+.dyn-item.minor{opacity:.70;}
+.dyn-item.minor:hover{opacity:.90;}
+.dyn-item:hover{background:var(--hover-bg);}
+.dyn-item input[type=checkbox]{cursor:pointer;margin:0;margin-right:5px;}
+.dyn-color-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-right:4px;}
+.dyn-search{width:100%;padding:5px 8px;font-size:.8em;border:1px solid var(--border);border-radius:5px;background:var(--bg);margin-bottom:8px;}
+.dyn-search:focus{outline:none;border-color:var(--accent);}
+.dyn-active-list{display:flex;flex-wrap:wrap;margin-top:8px;}
+.dyn-active-list > *{margin-right:6px;margin-bottom:6px;}
+.dyn-chip{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:.74em;border:1.5px solid;cursor:default;}
+.dyn-chip > *:not(:last-child){margin-right:4px;}
+.dyn-chip-del{cursor:pointer;opacity:.6;font-size:.85em;margin-left:4px;}
+.dyn-chip-del:hover{opacity:1;}
+.era-badge{margin-left:auto;font-size:.7em;color:#fff;border-radius:10px;padding:0 6px;line-height:1.6;}
+
+/* inputs */
+input[type=text],input[type=number]{font-size:.88em;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);}
+input:focus{outline:none;border-color:var(--accent);}
+
+/* table */
+.table-wrap{overflow:auto;max-height:90vh;border:2px solid var(--border);border-radius:8px;}
+table{border-collapse:separate;border-spacing:0;background:var(--bg);table-layout:auto;width:auto;border-top:0;}
+thead th{position:sticky;top:0;background:var(--hbg);color:var(--hfg);z-index:20;padding:6px 6px;font-size:.75em;font-weight:600;white-space:nowrap;}
+thead th.sticky-col{z-index:30;}
+
+td.sticky-col,th.sticky-col{position:sticky;left:0;z-index:10;}
+td.sticky-col{background:var(--sbg);font-weight:600;font-size:.75em;white-space:nowrap;}
+th.sticky-col,td.sticky-col{min-width:80px;}
+th:not(.sticky-col),td:not(.sticky-col){min-width:80px;}
+td:not(.sticky-col){transform: translateY(-0.5px);}
+
+th,td{padding:3px 4px;text-align:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:.75em;line-height:1.3;}
+
+tr.row-hover td{ box-shadow:inset 0 0 0 9999px var(--row-hover); }
+tr.row-hover td.sticky-col{ box-shadow:inset 0 0 0 9999px var(--row-hover-sc); }
+
+/* ── thead 2行 ──
+   1行目: 王朝名 / 人物名 + 並び替えボタン  (position:sticky top:0)
+   2行目: 現在表示中の君主名               (position:sticky top:1行目高さ)
+*/
+thead tr:nth-child(1) th { top: 0; }
+thead tr:nth-child(2) th {
+  top: 28px; /* JS で実測後に上書き */
+  background:var(--hbg2);
+  font-size:.65em;
+  font-weight:500;
+  padding:3px 6px;
+  color:rgba(232,234,237,.75);
+  letter-spacing:.03em;
+  white-space:nowrap;
+}
+thead tr:nth-child(2) th.sticky-col{
+  background:var(--hbg2);
+  color:rgba(232,234,237,.5);
+  font-style:normal;
+  font-size:.65em;
+}
+
+/* ── era cell ── */
+.era-td{
+  vertical-align:middle;
+  padding:3px 4px;
+  cursor:default;
+  position:relative;
+}
+/* 複数元号td */
+.era-td.multi{ padding:0; }
+.era-td.has-note{ cursor:default; }
+.era-td.no-era{ background:rgba(160,160,160,.13); }
+
+/* 君主交代年：太枠 + 上辺ライン強調 */
+.era-td.ruler-change{
+  border-top: 2.5px solid;   /* 色はJS側でインライン指定 */
+}
+
+/* 元号テキスト部 */
+.era-inner{
+  display:flex;
+  flex-direction:column;
+  font-size:.72em;
+  line-height:1.35;
+}
+.era-name{ font-weight:700; letter-spacing:.04em; }
+.era-nen { opacity:.72; }
+
+/* 複数元号年 */
+.multi-era-block{
+  display:block;
+  padding:2px 4px;
+  font-size:.72em;
+  line-height:1.3;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+.multi-era-block + .multi-era-block{
+  border-top:1px dashed rgba(0,0,0,.2);
+}
+.multi-era-name{ font-weight:700; letter-spacing:.04em; display:block; }
+.multi-era-nen { opacity:.72; }
+
+/* 説明マーク */
+.note-dot{
+  display:inline-block;
+  width:5px; height:5px;
+  border-radius:50%;
+  background:#555;
+  margin-left:3px;
+  vertical-align:middle;
+  opacity:.85;
+}
+
+/* col header move btns */
+.col-hdr{display:flex;align-items:center;justify-content:center;}
+.col-hdr > *:not(:last-child){margin-right:3px;}
+.col-hdr > *{margin-right:3px;}
+.col-hdr > *:last-child{margin-right:0;}
+.col-mv{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:var(--hfg);border-radius:3px;padding:1px 5px;font-size:.68em;cursor:pointer;line-height:1.4;flex-shrink:0;}
+.col-mv:hover{background:rgba(255,255,255,.35);}
+
+/* fixed bottom bar */
+#fixedBar{
+  position:fixed;bottom:20px;left:20px;z-index:9998;
+  display:flex;align-items:center;
+  background:var(--hbg);
+  border-radius:20px;
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+  padding:4px 12px 4px 4px;
+}
+#noteBtn{
+  background:transparent;color:var(--hfg);
+  border:1px solid #808080;border-radius:16px;padding:5px 12px;margin:0 5px 0 8px;
+  font-size:.8em;font-weight:600;letter-spacing:.06em;
+  cursor:pointer;
+}
+#noteBtn:hover{background:rgba(255,255,255,.12);border:1px solid #b3b3b3;}
+#fixedBar input[type=number]{
+  width:64px;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:10px;
+  color:var(--hfg);
+  font-size:.78em;
+  padding:3px 6px;
+  margin-left:4px;
+}
+#fixedBar input[type=number]::placeholder{color:rgba(255,255,255,.5);}
+#fixedBar input[type=number]:focus{outline:none;border-color:rgba(255,255,255,.7);}
+#notePanel{
+  position:fixed;bottom:64px;left:20px;z-index:9997;
+  width:270px;
+  background:var(--surface);border:1.5px solid var(--accent);border-radius:10px;
+  padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.2);
+  font-size:.82em;line-height:1.75;
+
+  transform-origin:bottom left;
+  transform:scale(.85);opacity:0;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1), opacity .15s ease;
+  pointer-events:none;
+}
+#notePanel.open{
+  transform:scale(1);opacity:1;
+  pointer-events:auto;
+}
+#notePanel h4{font-size:1.0em;color:var(--accent);margin-bottom:4px;}
+#notePanelEmpty{color:var(--muted);font-size:.88em;}
+
+/* 史書ツールチップ */
+#chronicleTip{
+  display:none;position:fixed;z-index:9999;
+  background:var(--hbg);color:var(--hfg);
+  border-radius:6px;padding:5px 10px;
+  font-size:.74em;line-height:1.6;
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+  pointer-events:none;
+}
+.era-range{font-size:.75em;opacity:.65;margin-left:5px;font-weight:400;}
+
+/* ── プリセット ── */
+.preset-section{margin-top:14px;padding-top:12px;border-top:1px solid #2e3240;}
+.preset-section-title{font-size:.78em;font-weight:700;color:var(--accent-s);margin-bottom:8px;letter-spacing:.05em;}
+.preset-chips{display:flex;flex-wrap:wrap;}
+.preset-chip{
+  display:inline-flex;align-items:center;
+  padding:2px 8px;margin:2px 3px 2px 0;
+  border-radius:12px;font-size:.72em;cursor:pointer;
+  border:1.5px solid;transition:opacity .12s;
+  white-space:nowrap;
+}
+.preset-chip:hover{opacity:.75;}
+.preset-dyn-row{display:flex;flex-wrap:wrap;align-items:center;padding:3px 8px 3px 12px;gap:0;}
+.preset-dyn-label{font-size:.7em;min-width:44px;flex-shrink:0;margin-right:6px;font-weight:600;}
+
+</style>
+</head>
+<script src="../header.js" data-curent="index"></script>
+<script src="era_data.js"></script>
+<script src="age_data.js"></script>
+<body>
+<div id="site-header"></div>
+<div id="tool-container">
+<div id="tool-h1">年齢・元号早見表</div>
+<div id="chronicleTip"></div>
+
+<div class="guide">
+  <b>人物を表示：</b>人物を追加→生年・没年・享年(数え年)のうち2つを入力。享年は<span style="color:var(--danger);">数え年</span>、セルでの表示は<span style="color:var(--danger);">数え年(満年齢)</span>です。<br/>
+  <b>王朝・勢力の元号を表示：</b>時代を選択→チェックで追加。範囲指定して一括追加も可能です。
+  <details style="margin:8px 0;border:1px solid var(--border);border-radius:8px;">
+    <summary style="padding:5px 15px;">機能詳細</summary>
+      <div style="padding:0 30px;">
+        <div style="border-bottom:1px solid var(--border);padding:5px 0;">
+          <p><b>人物タブ</b></p>
+          <p>人物の名前・色を変更すると表に反映されます。<br/>
+             生年不詳：没前n年表記になり、15年分余分に表示されます。<br/>
+             没年不詳：5年分余分に表示されます。</p>
+          <p>プリセットからも追加できます。現在は主要な人物のみですが、<a href="age_json_editor.html" target="_blank" style="color:#7ca5bf;">こちら</a>でデータを作成していただいて読み込むことも可能です。</p>
+          <p>読み込み：JSONを読み込み、人物データを追加します。<br/>
+             クリア：全ての人物データを削除します。<br/>
+             王朝・勢力も同時追加：分類されている国・勢力も同時に表示されます。</p>
+        </div>
+        <div style="border-bottom:1px solid var(--border);padding:5px 0;">
+          <p><b>王朝・勢力タブ</b></p>
+          <p>一括追加：開始年と終了年を入力→追加ボタン。範囲内に元号データの存在する全ての王朝・勢力が追加されます。片方の入力で、その年のみ追加。<br/>
+             主要国のみ：主要国に絞り込んで追加されます。</p>
+        </div>
+        <div style="border-bottom:1px solid var(--border);padding:5px 0;">
+          <p>表示中のタブ切り替えボタンをクリックすると、タブを折りたためます。</p>
+        </div>
+        <div style="border-bottom:1px solid var(--border);padding:5px 0;">
+          <p><b>表の見方</b></p>
+          <p>1列目：年と干支が表示されます。ホバーすると、対応する春秋の魯公在位年・資治通鑑の巻数が表示されます。<br/>
+             1行目：人物名・王朝名・勢力名が表示されます。◀▶で並び替えられます。<br/>
+             2行目：一番上の行に対応した君主名が表示されます。また、ホバーした行の君主名が表示されます。</p>
+        </div>
+        <div style="padding:5px 0;argin-bottom:5px;">
+          <p>ノート：●付きのセルをホバーすると説明が表示されます。<br/>
+             年入力欄：対応する年の行まで自動スクロールします。</p>
+        </div>
+      </div>
+  </details>
+  <details style="margin:8px 0;border:1px solid var(--border);border-radius:8px;">
+    <summary style="padding:5px 15px;">データについて</summary>
+      <div style="padding:0 30px;">
+        <div style="border-bottom:1px solid var(--border);padding:5px 0;">
+          <p><b>はじめに</b></p>
+          <p>本ツールのデータ入力にあたり、元号・人物の生没年データが大量に必要となりましたが、全てを精査していると公開まで途方もなく時間がかかってしまうため、一旦概ね信用できるであろうWikipediaのデータをベースとし、追って確認・追加・修正を行っていく方針としました。<br/>
+             制作者の興味・知識の範囲が偏っているため、データにも偏りがありますがご容赦ください。</p>
+          <p><span style="color:var(--danger);font-weight:bold;">データはあくまで参考情報として、正確性については各自でご確認ください。</span></p>
+        </div>
+        <div style="border-bottom:1px solid var(--border);padding:5px 0;">
+          <p><b>編集方針</b></p>
+          <p>・年は太陰太陽暦、改年のタイミングは当時の基準に従っています<br/>
+             ・元号ベースなので、実際の即位年・没年とはずれる場合があります<br/>
+             ・分かりやすさより表記の統一を優先させています</p>
+        </div>
+        <div style="border-bottom:1px solid var(--border);padding:5px 0;">
+          <p><b>初期データについて</b></p>
+          <p>人物プリセットは順次追加していきますが、最初に各時代主要な人物を追加しました。その際の主要人物の人選は、波間丿乀斎様がまとめられていたものを利用させていただきました。ご協力くださりありがとうございました！</p>
+          <p>リンク</p>
+          <p>▶︎　<a href="https://gogo16th.booth.pm/items/6132991" target="_blank" style="color:#7ca5bf;">【無料配布】中国史人物年齢比較一覧表</a><br/>
+             ▶︎　<a href="https://jinsung.chronicle.wiki/d/%BB%B0%B9%F1%BB%D6%BC%E7%CD%D7%BF%CD%CA%AA%C7%AF%CE%F0%B0%EC%CD%F7%C9%BD" target="_blank" style="color:#7ca5bf;">三国志主要人物年齢一覧表</a><br/>
+             ▶︎　<a href="https://jinsung.chronicle.wiki/d/%B8%DE%B8%D5%BD%BD%CF%BB%B9%F1%BF%CD%CA%AA%C7%AF%CE%F0%C9%BD%C1%C7%A5%C7%A1%BC%A5%BF" target="_blank" style="color:#7ca5bf;">五胡十六国人物年齢表素データ</a></p>
+        </div>
+        <div style="padding:5px 0;argin-bottom:5px;">
+          <p><b>データの追加・修正・リクエスト</b></p>
+          <p><a href="https://forms.gle/y3DZGCg9V2dTLKU47" target="_blank" style="color:#7ca5bf;">こちら</a>から、頻繁に更新はできませんが随時受け付けております。</p>
+          <p>・出典を記載していただけますととても助かります<br/>
+             ・異論、異説、考証なども大歓迎です<br/>
+             ・作成していただいたJSONのデータでもありがたいです</p>
+        </div>
+      </div>
+  </details>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('persons')">人物</button>
+  <button class="tab-btn" onclick="switchTab('dynasties')">王朝・勢力</button>
+</div>
+
+<div id="tab-persons" class="tab-panel active">
+  <div class="panel-box">
+    <div class="controls-bar">
+      <button class="btn btn-primary" onclick="addPerson()">＋ 人物を追加</button>
+    </div>
+    <div id="personCards" class="cards-wrap"></div>
+    <div class="preset-section">
+      <div class="preset-section-title">プリセット</div>
+      <div class="controls-bar" style="margin-bottom:8px;">
+        <label class="btn btn-outline" style="cursor:pointer;font-size:.78em;padding:5px 12px;">
+          読み込み
+          <input type="file" accept=".json" multiple style="display:none;" onchange="loadPresetJSON(this)">
+        </label>
+        <button class="btn btn-outline" style="font-size:.78em;padding:5px 12px;" onclick="clearPresets()">クリア</button>
+        <label style="font-size:.78em;cursor:pointer;margin-bottom:6px;">
+          <input type="checkbox" id="presetWithDyn" checked style="margin-right:5px;" onchange="renderPresetList()">
+          王朝・勢力も同時追加
+        </label>
+      </div>
+      <input class="dyn-search" id="presetSearch" placeholder="🔍 人物名で検索…" oninput="renderPresetList()">
+      <div id="presetList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-dynasties" class="tab-panel">
+  <div class="panel-box">
+    <!-- 一括追加 -->
+    <div style="display:flex;flex-wrap:wrap;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+      <span style="font-size:.8em;font-weight:700;color:var(--accent-s);margin-right:8px;">一括追加</span>
+      <input type="number" id="bulkYearFrom" placeholder="開始年" style="width:80px;margin-right:4px;" oninput="previewBulk()">
+      <span style="font-size:.8em;margin-right:4px;">〜</span>
+      <input type="number" id="bulkYearTo" placeholder="終了年" style="width:80px;margin-right:8px;" oninput="previewBulk()">
+      <label style="display:flex;align-items:center;font-size:.78em;cursor:pointer;margin-right:8px;">
+        <input type="checkbox" id="bulkMajorOnly" onchange="previewBulk()" style="margin-right:4px;"> 主要国のみ
+      </label>
+      <button class="btn btn-primary" style="padding:5px 12px;margin-right:8px;" onclick="addBulkDyns()">追加</button>
+      <span id="bulkPreview" style="font-size:.75em;color:var(--muted);"></span>
+    </div>
+    <input class="dyn-search" id="dynSearch" placeholder="🔍 王朝・勢力名で検索…" oninput="renderDynSelector()">
+    <div id="dynSelector" class="dyn-selector"></div>
+    <div style="margin-top:10px;font-size:.76em;color:var(--muted);">表示中：</div>
+    <div id="dynActiveChips" class="dyn-active-list"></div>
+  </div>
+</div>
+
+<div class="table-wrap" id="tableWrap">
+  <table id="cmpTable">
+    <thead>
+      <tr id="headerRow"><th class="sticky-col">年 / 干支</th></tr>
+      <tr id="rulerRow"><th class="sticky-col">— 君主 —</th></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div id="tableBottomSpacer"></div>
+</div>
+
+<div id="fixedBar">
+  <button id="noteBtn" onclick="toggleNotePanel()">ノート</button>
+  <input type="number" id="jumpYear" placeholder="年" onkeydown="if(event.key==='Enter')jumpToYear()">
+</div>
+<div id="notePanel">
+  <div id="notePanelEmpty">● 付きのセルにホバーすると内容が表示されます</div>
+  <h4 id="popTitle" style="display:none;"></h4>
+  <div id="popBody" style="display:none;"></div>
+</div>
+</div>
+
+<script>
+/* ═══════════════════════════ 干支 ═══════════════════════════ */
+const KAN=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+const SHI=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+function eto(y){const a=y>0?y:y+1;let i=(a-4)%60;if(i<0)i+=60;return KAN[i%10]+SHI[i%12];}
+function ydiff(a,b){if(a===""||b===""||isNaN(a)||isNaN(b))return 0;let d=b-a;if(a<0&&b>0)d--;return d;}
+
+/* ═══════════════════════════ 人物 ═══════════════════════════ */
+let people=[];
+let columnOrder=[];
+
+function addPerson(init){
+  const p = {
+    id:           Date.now(),
+    name:         init ? (init.name         || "名前を入力") : "名前を入力",
+    birth:        init ? (init.birth        !== undefined ? init.birth  : "") : "",
+    death:        init ? (init.death        !== undefined ? init.death  : "") : "",
+    age:          init ? (init.age          !== undefined ? init.age    : "") : "",
+    isAfter:      init ? (init.isAfter      || false) : false,
+    birthUnknown: init ? (init.birthUnknown || false) : false,
+    color:        init ? (init.color        || "#ffffff") : "#ffffff",
+    notes:        init ? (init.notes        || [])    : [],
+    error:        ""
+  };
+  people.push(p);
+  validateP(p);
+  syncCols();renderPersons();updateTable();
+}
+function removePerson(id){people=people.filter(p=>p.id!==id);syncCols();renderPersons();updateTable();}
+
+function updatePerson(id,f,v){
+  const p=people.find(x=>x.id===id);if(!p)return;
+  if(f==='isAfter'){      p[f]=v; if(v) p.birthUnknown=false; }
+  else if(f==='birthUnknown'){ p[f]=v; if(v) p.isAfter=false; }
+  else if(f==='name')p[f]=v;
+  else if(f==='color')p[f]=v;
+  else p[f]=v===""?"":parseInt(v);
+  validateP(p);renderPersons();updateTable();
+}
+function validateP(p){
+  p.error="";
+  const{birth:b,death:d,age:a}=p;
+  if(!p.birthUnknown){
+    if(b!==""&&d!==""&&a==="")p.age=ydiff(b,d)+1;
+    else if(b!==""&&a!==""&&d===""){let td=b+a-1;if(b<0&&td>=0)td++;p.death=td;}
+    else if(d!==""&&a!==""&&b===""){let tb=d-a+1;if(d>0&&tb<=0)tb--;p.birth=tb;}
+    if(p.birth!==""&&p.death!==""&&p.age!==""&&ydiff(p.birth,p.death)+1!==p.age)p.error="計算が合いません";
+    if(p.age!==""&&p.age<1)p.error="享年が0以下です";
+    if(p.birth!==""&&p.death!==""&&p.birth>p.death)p.error="生年 > 没年";
+  } else {
+    if(p.death==="") p.error="没年は必須です";
+  }
+}
+function renderPersons(){
+  document.getElementById('personCards').innerHTML=people.map(p=>`
+    <div class="person-card">
+      <div class="card-header">
+        <input type="text" value="${x(p.name)}" onchange="updatePerson(${p.id},'name',this.value)" style="font-weight:700;width:118px;">
+        <div style="display:flex;align-items:center;">
+          <button class="btn btn-danger btn-sm" style="margin-left:4px;" onclick="removePerson(${p.id})">削除</button>
+        </div>
+      </div>
+      <div class="field-row"><label>生年</label><input type="number" value="${p.birth}" onchange="updatePerson(${p.id},'birth',this.value)">
+        <input type="checkbox" ${p.birthUnknown?'checked':''} onchange="updatePerson(${p.id},'birthUnknown',this.checked)"><span style="font-size:.77em;">生年不詳</span></div>
+      <div class="field-row"><label>没年</label><input type="number" value="${p.death}" onchange="updatePerson(${p.id},'death',this.value)">
+        <input type="checkbox" ${p.isAfter?'checked':''} onchange="updatePerson(${p.id},'isAfter',this.checked)"><span style="font-size:.77em;">没年不詳</span></div>
+      <div class="field-row"><label>享年</label><input type="number" value="${p.age}" onchange="updatePerson(${p.id},'age',this.value)"></div>
+      <div class="field-row"><label>色</label><input type="color" value="${p.color||'#ffffff'}" oninput="updatePerson(${p.id},'color',this.value)" style="width:40px;height:24px;padding:1px 2px;border-radius:4px;cursor:pointer;border:1px solid var(--border);"></div>
+      ${p.error?`<div class="error-msg">⚠ ${p.error}</div>`:''}
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════ 史書データ ═══════════════════════
+  各史書について、年→表示文字列を返す関数を定義する。
+  chronicleLabel(y) で全史書の該当情報を返す。
+  ──────────────────────────────────────────────────────── */
+const CHRONICLES = [
+  {
+    name: "春秋",
+    // 魯の隠公元年=前722年 〜 哀公14年=前481年
+    // 各公の在位年と対応する公名を配列で定義
+    rulers: [
+      { name:"隠公", start:-722, end:-712 },
+      { name:"桓公", start:-711, end:-694 },
+      { name:"荘公", start:-693, end:-662 },
+      { name:"閔公", start:-661, end:-660 },
+      { name:"僖公", start:-659, end:-627 },
+      { name:"文公", start:-626, end:-609 },
+      { name:"宣公", start:-608, end:-591 },
+      { name:"成公", start:-590, end:-573 },
+      { name:"襄公", start:-572, end:-542 },
+      { name:"昭公", start:-541, end:-510 },
+      { name:"定公", start:-509, end:-495 },
+      { name:"哀公", start:-494, end:-468 },
+    ],
+    label: function(y){
+      for(const r of this.rulers){
+        if(y >= r.start && y <= r.end){
+          const nen = y - r.start + 1;
+          const yearDisplay = (nen===1) ? '元' : nen;
+          return `春秋 ${r.name}${yearDisplay}年`;
+        }
+      }
+      return null;
+    }
+  },
+  {
+    name: "資治通鑑",
+    // 前403年（威烈王23年）〜 959年（後周世宗顕徳6年）
+    start: -403, end: 959,
+    volumes: [
+      {vol:1,  year:-403}, {vol:2,  year:-368}, {vol:3,  year:-320}, {vol:4,  year:-297}, {vol:5,  year:-272}, 
+      {vol:6,  year:-255}, {vol:7,  year:-227}, {vol:8,  year:-208}, {vol:9,  year:-206}, {vol:10, year:-204}, 
+      {vol:11, year:-202}, {vol:12, year:-199}, {vol:13, year:-187}, {vol:14, year:-177}, {vol:15, year:-169}, 
+      {vol:16, year:-154}, {vol:17, year:-140}, {vol:18, year:-133}, {vol:19, year:-124}, {vol:20, year:-118}, 
+      {vol:21, year:-109}, {vol:22,  year:-98}, {vol:23,  year:-86}, {vol:24,  year:-74}, {vol:25,  year:-67}, 
+      {vol:26,  year:-61}, {vol:27,  year:-58}, {vol:28,  year:-48}, {vol:29,  year:-41}, {vol:30,  year:32},
+      {vol:31,  year:22},  {vol:32,  year:13},  {vol:33,  year:7},   {vol:34,  year:5},   {vol:35,  year:2}, 
+      {vol:36,  year:3}, {vol:37,  year:9},  {vol:38,  year:15},  {vol:39,  year:23}, {vol:40,  year:25},
+      {vol:41,  year:27}, {vol:42,  year:30}, {vol:43,  year:36}, {vol:44,  year:47}, {vol:45,  year:61},
+      {vol:46,  year:76}, {vol:47,  year:85}, {vol:48,  year:92}, {vol:49,  year:106}, {vol:50,  year:116},
+      {vol:51,  year:125}, {vol:52,  year:134}, {vol:53,  year:46}, {vol:54,  year:157}, {vol:55,  year:164},
+      {vol:56,  year:167}, {vol:57,  year:172}, {vol:58,  year:181}, {vol:59,  year:188}, {vol:60,  year:191},
+      {vol:61,  year:194}, {vol:62,  year:196}, {vol:63,  year:199}, {vol:64,  year:201}, {vol:65,  year:206},
+      {vol:66,  year:209}, {vol:67,  year:214}, {vol:68,  year:217}, {vol:69,  year:220}, {vol:70,  year:223},
+      {vol:71,  year:228}, {vol:72,  year:231}, {vol:73,  year:235}, {vol:74,  year:238}, {vol:75,  year:246},
+      {vol:76,  year:253}, {vol:77,  year:256}, {vol:78,  year:262}, {vol:79,  year:265}, {vol:80,  year:273},
+      {vol:81,  year:280}, {vol:82,  year:289}, {vol:83,  year:299}, {vol:84,  year:301}, {vol:85,  year:303},
+      {vol:86,  year:305}, {vol:87,  year:309}, {vol:88,  year:312}, {vol:89,  year:314}, {vol:90,  year:317},
+      {vol:91,  year:319}, {vol:92,  year:322}, {vol:93,  year:324}, {vol:94,  year:328}, {vol:95,  year:332},
+      {vol:96,  year:338}, {vol:97,  year:342}, {vol:98,  year:348}, {vol:99,  year:351}, {vol:100, year:355},
+      {vol:101, year:360}, {vol:102, year:369}, {vol:103, year:371}, {vol:104, year:376}, {vol:105, year:383},
+      {vol:106, year:385}, {vol:107, year:387}, {vol:108, year:392}, {vol:109, year:397}, {vol:110, year:398},
+      {vol:111, year:399}, {vol:112, year:401}, {vol:113, year:403}, {vol:114, year:405}, {vol:115, year:409},
+      {vol:116, year:411}, {vol:117, year:415}, {vol:118, year:417}, {vol:119, year:420}, {vol:120, year:424},
+      {vol:121, year:428}, {vol:122, year:431}, {vol:123, year:436}, {vol:124, year:442}, {vol:125, year:447},
+      {vol:126, year:451}, {vol:127, year:453}, {vol:128, year:454}, {vol:129, year:459}, {vol:130, year:465},
+      {vol:131, year:466}, {vol:132, year:467}, {vol:133, year:471}, {vol:134, year:476}, {vol:135, year:479},
+      {vol:136, year:484}, {vol:137, year:490}, {vol:138, year:493}, {vol:139, year:494}, {vol:140, year:495},
+      {vol:141, year:497}, {vol:142, year:499}, {vol:143, year:500}, {vol:144, year:501}, {vol:145, year:502},
+      {vol:146, year:505}, {vol:147, year:508}, {vol:148, year:515}, {vol:149, year:519}, {vol:150, year:524},
+      {vol:151, year:526}, {vol:152, year:528}, {vol:153, year:529}, {vol:154, year:530}, {vol:155, year:531},
+      {vol:156, year:533}, {vol:157, year:535}, {vol:158, year:538}, {vol:159, year:545}, {vol:160, year:547},
+      {vol:161, year:548}, {vol:162, year:549}, {vol:163, year:550}, {vol:164, year:551}, {vol:165, year:553},
+      {vol:166, year:555}, {vol:167, year:557}, {vol:168, year:560}, {vol:169, year:563}, {vol:170, year:567},
+      {vol:171, year:572}, {vol:172, year:575}, {vol:173, year:577}, {vol:174, year:580}, {vol:175, year:581},
+      {vol:176, year:584}, {vol:177, year:589}, {vol:178, year:592}, {vol:179, year:600}, {vol:180, year:604},
+      {vol:181, year:608}, {vol:182, year:613}, {vol:183, year:616}, {vol:184, year:617}, {vol:185, year:618},
+      {vol:186, year:618}, {vol:187, year:619}, {vol:188, year:619}, {vol:189, year:621}, {vol:190, year:622},
+      {vol:191, year:624}, {vol:192, year:626}, {vol:193, year:628}, {vol:194, year:632}, {vol:195, year:637},
+      {vol:196, year:641}, {vol:197, year:643}, {vol:198, year:645}, {vol:199, year:648}, {vol:200, year:655},
+      {vol:201, year:662}, {vol:202, year:671}, {vol:203, year:682}, {vol:204, year:687}, {vol:205, year:692},
+      {vol:206, year:697}, {vol:207, year:700}, {vol:208, year:705}, {vol:209, year:708}, {vol:210, year:710},
+      {vol:211, year:714}, {vol:212, year:718}, {vol:213, year:726}, {vol:214, year:734}, {vol:215, year:742},
+      {vol:216, year:747}, {vol:217, year:754}, {vol:218, year:756}, {vol:219, year:756}, {vol:220, year:757},
+      {vol:221, year:759}, {vol:222, year:761}, {vol:223, year:763}, {vol:224, year:765}, {vol:225, year:774},
+      {vol:226, year:779}, {vol:227, year:781}, {vol:228, year:783}, {vol:229, year:783}, {vol:230, year:784},
+      {vol:231, year:784}, {vol:232, year:785}, {vol:233, year:787}, {vol:234, year:792}, {vol:235, year:794},
+      {vol:236, year:801}, {vol:237, year:806}, {vol:238, year:809}, {vol:239, year:812}, {vol:240, year:817},
+      {vol:241, year:819}, {vol:242, year:821}, {vol:243, year:823}, {vol:244, year:829}, {vol:245, year:834},
+      {vol:246, year:838}, {vol:247, year:843}, {vol:248, year:844}, {vol:249, year:850}, {vol:250, year:860},
+      {vol:251, year:868}, {vol:252, year:870}, {vol:253, year:877}, {vol:254, year:880}, {vol:255, year:882},
+      {vol:256, year:884}, {vol:257, year:887}, {vol:258, year:889}, {vol:259, year:892}, {vol:260, year:895},
+      {vol:261, year:897}, {vol:262, year:900}, {vol:263, year:902}, {vol:264, year:903}, {vol:265, year:904},
+      {vol:266, year:907}, {vol:267, year:908}, {vol:268, year:911}, {vol:269, year:913}, {vol:270, year:917},
+      {vol:271, year:919}, {vol:272, year:923}, {vol:273, year:924}, {vol:274, year:925}, {vol:275, year:926},
+      {vol:276, year:927}, {vol:277, year:930}, {vol:278, year:932}, {vol:279, year:934}, {vol:280, year:936},
+      {vol:281, year:937}, {vol:282, year:939}, {vol:283, year:942}, {vol:284, year:944}, {vol:285, year:945},
+      {vol:286, year:947}, {vol:287, year:947}, {vol:288, year:948}, {vol:289, year:950}, {vol:290, year:951},
+      {vol:291, year:952}, {vol:292, year:954}, {vol:293, year:956}, {vol:294, year:958},
+    ],
+    label: function(y){
+      if(y < this.start || y > this.end) return null;
+      const matched = this.volumes.filter(v => v.year === y);
+      if(matched.length > 0){
+        return matched.map(v => `資治通鑑 第${v.vol}巻`);
+      }
+      let vol = 1;
+      for(let i = 0; i < this.volumes.length; i++){
+        if(y >= this.volumes[i].year){
+          vol = this.volumes[i].vol;
+          if(i+1 < this.volumes.length && y < this.volumes[i+1].year) break;
+        }
+      }
+      return [`資治通鑑 第${vol}巻`];
+    }
+  },
+];
+
+function chronicleLabel(y){
+  const parts = [];
+  for(const ch of CHRONICLES){
+    const lbl = ch.label(y);
+    if(!lbl) continue;
+    if(Array.isArray(lbl)) lbl.forEach(l => parts.push(l));
+    else parts.push(lbl);
+  }
+  return parts;
+}
+
+/* ═══════════════════════ 人物プリセット ═══════════════════════
+
+/* ── プリセット状態 ── */
+let _presetData     = [...BUILTIN_PERSONS]; // 内蔵データで初期化
+let _presetOpenKeys = new Set();            // 開いている時代キー
+
+/* 没年/生年から時代グループを推定 */
+function guessEraGroup(person){
+  if(person.dynasty){
+    for(const g of ERA_GROUPS)
+      if(g.dynasties.some(d => d.id === person.dynasty)) return g;
+  }
+  const refYear = person.death !== undefined ? person.death : person.birth;
+  if(refYear === undefined) return null;
+  for(const g of ERA_GROUPS){
+    if(g.start != null && g.end != null && refYear >= g.start && refYear <= g.end) return g;
+  }
+  // フォールバック：元号年範囲から動的判定
+  for(const g of ERA_GROUPS){
+    let gMin = Infinity, gMax = -Infinity;
+    g.dynasties.forEach(d => d.eras.forEach(e => {
+      if(e.start !== "" && !isNaN(e.start)){ gMin = Math.min(gMin, e.start); gMax = Math.max(gMax, e.start); }
+    }));
+    if(gMin !== Infinity && refYear >= gMin && refYear <= gMax + 50) return g;
+  }
+  return null;
+}
+
+function loadPresetJSON(input){
+  const files = Array.from(input.files);
+  let remaining = files.length;
+  const newKeys = new Set();
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        const arr = JSON.parse(e.target.result);
+        if(Array.isArray(arr)){
+          arr.forEach(p => {
+            _presetData.push(p);
+            const g = guessEraGroup(p);
+            if(g) newKeys.add(g.era);
+            else  newKeys.add('__other__');
+          });
+        }
+      } catch(err){ alert(file.name + ' の読み込みに失敗しました'); }
+      remaining--;
+      if(remaining === 0){
+        newKeys.forEach(k => _presetOpenKeys.add(k));
+        renderPresetList();
+      }
+    };
+    reader.readAsText(file);
+  });
+  input.value = '';
+}
+
+function clearPresets(){
+  _presetData = [];
+  _presetOpenKeys = new Set();
+  renderPresetList();
+}
+
+function renderPresetList(){
+  const el = document.getElementById('presetList');
+  if(!el) return;
+
+  const q = (document.getElementById('presetSearch')||{value:''}).value.trim();
+  const filtered = q ? _presetData.filter(p => p.name.includes(q)) : _presetData;
+  const forceOpen = q.length > 0;
+
+  const grouped = {};
+  filtered.forEach(person => {
+    const g      = guessEraGroup(person);
+    const eraKey = g ? g.era : '__other__';
+    if(!grouped[eraKey]) grouped[eraKey] = { group:g, byDyn:{}, other:[] };
+    if(person.dynasty && g){
+      const dyn = g.dynasties.find(d => d.id === person.dynasty);
+      if(dyn){
+        if(!grouped[eraKey].byDyn[dyn.id])
+          grouped[eraKey].byDyn[dyn.id] = { dyn, persons:[] };
+        grouped[eraKey].byDyn[dyn.id].persons.push(person);
+        return;
+      }
+    }
+    grouped[eraKey].other.push(person);
+  });
+
+  const orderedKeys = ERA_GROUPS.map(g => g.era).filter(k => grouped[k])
+    .concat(grouped['__other__'] ? ['__other__'] : []);
+
+  // 開閉状態を現在のDOMから保存
+  el.querySelectorAll('.dyn-era-group details').forEach(det => {
+    const k = det.getAttribute('data-era');
+    if(k && !_presetOpenKeys.has(k)){  // 新規追加キーは上書きしない
+      if(det.open) _presetOpenKeys.add(k);
+      else         _presetOpenKeys.delete(k);
+    }
+  });
+
+  el.innerHTML = orderedKeys.map(eraKey => {
+    const entry    = grouped[eraKey];
+    const eraLabel = eraKey === '__other__' ? 'その他' : eraKey;
+    const g        = entry.group;
+    const isOpen = forceOpen || _presetOpenKeys.has(eraKey);
+
+    const dynOrder = g ? g.dynasties.map(d => d.id) : [];
+    const dynRows = dynOrder.filter(id => entry.byDyn[id]).map(id => {
+      const { dyn, persons } = entry.byDyn[id];
+      const chips = persons.map(p => presetChipHTML(p, dyn.color)).join('');
+      return `<div class="preset-dyn-row">
+        <span class="preset-dyn-label" style="color:${dyn.color};">${x(dyn.name)}</span>
+        <div class="preset-chips">${chips}</div>
+      </div>`;
+    }).join('');
+
+    const otherRow = entry.other.length
+      ? `<div class="preset-dyn-row">
+          <span class="preset-dyn-label" style="color:#888;">その他</span>
+          <div class="preset-chips">${entry.other.map(p => presetChipHTML(p,'#888')).join('')}</div>
+        </div>` : '';
+
+    return `<div class="dyn-era-group">
+      <details data-era="${x(eraKey)}" ${isOpen?'open':''}
+        ontoggle="presetToggle(this,'${x(eraKey)}')">
+        <summary onclick="toggleArrow(this)">
+          <span class="dyn-toggle-arrow" style="${isOpen?'transform:rotate(90deg)':''}">&#x25b6;</span>
+          ${x(eraLabel)}
+        </summary>
+        <div>${dynRows}${otherRow}</div>
+      </details>
+    </div>`;
+  }).join('');
+}
+
+function presetToggle(det, key){
+  if(det.open) _presetOpenKeys.add(key);
+  else         _presetOpenKeys.delete(key);
+}
+
+function presetChipHTML(person, dynColor){
+  const bg  = hexAlpha(dynColor, .18);
+  const bdr = hexAlpha(dynColor, .55);
+  const safe = x(JSON.stringify(person));
+  const tip  = `${x(person.name)} (${person.birth||'?'}\u301c${person.death||'?'})`;
+  return `<span class="preset-chip"
+    style="background:${bg};border-color:${bdr};color:var(--text-l);"
+    onclick='addPersonFromPreset(${safe})'
+    title="${tip}">${x(person.name)}</span>`;
+}
+
+function addPersonFromPreset(person){
+  const withDyn = document.getElementById('presetWithDyn');
+  if(withDyn && withDyn.checked && person.dynasty){
+    // 王朝をまだ選択していなければ追加（左に表示するため先に処理）
+    if(!selectedDynIds.has(person.dynasty)){
+      selectedDynIds.add(person.dynasty);
+      syncCols();
+      renderDynSelector();
+    }
+  }
+  addPerson({
+    name:         person.name,
+    birth:        person.birth,
+    death:        person.death,
+    age:          person.age,
+    isAfter:      person.isAfter      || false,
+    birthUnknown: person.birthUnknown || false,
+    color:        person.color        || '#ffffff',
+    notes:        person.notes        || [],
+  });
+}
+
+/* ═══════════════════════════ 選択中王朝 ═══════════════════════════ */
+let selectedDynIds = new Set();
+
+function getAllDynasties(){
+  const list=[];
+  ERA_GROUPS.forEach(g=>g.dynasties.forEach(d=>list.push({...d,groupEra:g.era,groupColor:g.color})));
+  return list;
+}
+function getDynById(id){return getAllDynasties().find(d=>d.id===id);}
+
+/* 複数元号セルのブロック高さをレンダリング後に実測値で均等設定 */
+function fixMultiEraCells(){
+  document.querySelectorAll('td[data-multi-n]').forEach(td => {
+    const n = parseInt(td.getAttribute('data-multi-n'));
+    const tdH = td.offsetHeight;
+    if(!tdH || n < 2) return;
+    const blockH = Math.floor(tdH / n);
+    const blocks = td.querySelectorAll('.multi-era-block');
+    blocks.forEach((b, i) => {
+      // 最後のブロックは余りを吸収
+      b.style.height = (i === n-1 ? (tdH - blockH*(n-1)) : blockH) + 'px';
+      b.style.display = 'flex';
+      b.style.flexDirection = 'column';
+      b.style.justifyContent = 'center';
+      b.style.boxSizing = 'border-box';
+      if(i > 0) b.style.borderTop = '1px dashed rgba(0,0,0,.2)';
+    });
+  });
+}
+
+function toggleArrow(summary){
+  const arrow = summary.querySelector('.dyn-toggle-arrow');
+  if(!arrow) return;
+  // details が open になるのはクリック後なので setTimeout で状態確認
+  setTimeout(() => {
+    const isOpen = summary.closest('details').open;
+    arrow.style.transform = isOpen ? 'rotate(90deg)' : '';
+  }, 0);
+}
+
+function renderDynSelector(){
+  const q=(document.getElementById('dynSearch')||{value:''}).value.trim().toLowerCase();
+  const container=document.getElementById('dynSelector');
+  const forceOpen = q.length > 0;
+
+  // 既存DOMがあれば開閉状態を保存
+  const openStates = {};
+  container.querySelectorAll('.dyn-era-group details').forEach(det => {
+    const key = det.getAttribute('data-era');
+    if(key) openStates[key] = det.open;
+  });
+
+  const groups = ERA_GROUPS.map(g => {
+    const items = g.dynasties.filter(d => !q || d.name.includes(q));
+    if(!items.length) return '';
+    const checkedCount = items.filter(d => selectedDynIds.has(d.id)).length;
+    const badge = checkedCount > 0
+      ? `<span class="era-badge" style="background:${g.color};">${checkedCount}</span>` : '';
+    // 開閉状態：保存値 → forceOpen → デフォルト閉
+    const isOpen = forceOpen || (openStates[g.era] === true);
+    return `<div class="dyn-era-group">
+      <details data-era="${x(g.era)}" ${isOpen?'open':''}>
+        <summary onclick="toggleArrow(this)"><span class="dyn-toggle-arrow" style="${isOpen?'transform:rotate(90deg)':''}">\u25b6</span>${x(g.era)}${g.start!=null&&g.end!=null?" <small style='opacity:.6'>("+g.start+"〜"+g.end+")</small>":""}${badge}</summary>
+        <div class="dyn-checkbox-list">
+          ${items.map(d=>`
+            <label class="dyn-item${d.major?'':' minor'}">
+              <input type="checkbox" data-dyn-id="${d.id}" ${selectedDynIds.has(d.id)?'checked':''}
+                onchange="toggleDyn('${d.id}',this.checked)">
+              <span class="dyn-color-dot" style="background:${d.color};"></span>
+              <span>${x(d.name)}</span>
+            </label>
+          `).join('')}
+        </div>
+      </details>
+    </div>`;
+  }).join('');
+  container.innerHTML = groups || '<span style="color:var(--muted);font-size:.8em;">該当なし</span>';
+  renderActiveChips();
+}
+
+/* チェック変更時：DOMを再構築せず、チェック状態・バッジ・チップだけ更新 */
+function patchDynSelector(){
+  const container = document.getElementById('dynSelector');
+  // チェックボックスを全同期
+  container.querySelectorAll('input[data-dyn-id]').forEach(cb => {
+    cb.checked = selectedDynIds.has(cb.getAttribute('data-dyn-id'));
+  });
+  // バッジを更新
+  container.querySelectorAll('.dyn-era-group details').forEach(det => {
+    const era = det.getAttribute('data-era');
+    const g = ERA_GROUPS.find(g => g.era === era);
+    if(!g) return;
+    const q = (document.getElementById('dynSearch')||{value:''}).value.trim().toLowerCase();
+    const items = g.dynasties.filter(d => !q || d.name.includes(q) || g.era.includes(q));
+    const count = items.filter(d => selectedDynIds.has(d.id)).length;
+    const summary = det.querySelector('summary');
+    let badge = summary.querySelector('.era-badge');
+    if(count > 0){
+      if(!badge){ badge = document.createElement('span'); badge.className='era-badge'; badge.style.background=g.color; summary.appendChild(badge); }
+      badge.textContent = count;
+    } else {
+      if(badge) badge.remove();
+    }
+  });
+  renderActiveChips();
+}
+
+function toggleDyn(id, on){
+  if(on) selectedDynIds.add(id); else selectedDynIds.delete(id);
+  syncCols();
+  patchDynSelector();  // ← DOM再構築しない
+  updateTable();
+}
+
+function renderActiveChips(){
+  const wrap=document.getElementById('dynActiveChips');
+  if(!wrap)return;
+  wrap.innerHTML=[...selectedDynIds].map(id=>{
+    const d=getDynById(id);if(!d)return '';
+    return `<span class="dyn-chip" style="color:${d.color};border-color:${d.color};background:${d.color}18;">
+      ${d.name}<span class="dyn-chip-del" onclick="toggleDyn('${id}',false)">✕</span>
+    </span>`;
+  }).join('');
+}
+
+/* ═══════════════════════════ 一括追加 ═══════════════════════════ */
+/* ある西暦にその王朝が存在していた\uff08元号が有効\uff09かどうか */
+function dynExistsInYear(d, y){
+  // eras なしで start/end だけ持つ王朝\uff08五胡十六国など\uff09
+  if(d.eras.length === 0){
+    if(d.start === undefined) return false;
+    const end = d.end !== undefined ? d.end : Infinity;
+    return y >= d.start && y <= end;
+  }
+  return d.eras.some(e => {
+    if(e.start === "" || isNaN(e.start)) return false;
+    let end = e.end;
+    if(end === undefined || end === ""){
+      const idx = d.eras.indexOf(e);
+      for(let i = idx+1; i < d.eras.length; i++){
+        if(d.eras[i].start !== ""){ end = d.eras[i].start - 1; break; }
+      }
+    }
+    return end === undefined ? y >= e.start : y >= e.start && y <= end;
+  });
+}
+
+function getBulkCandidates(){
+  const from = parseInt(document.getElementById('bulkYearFrom').value);
+  const to   = parseInt(document.getElementById('bulkYearTo').value);
+  const majorOnly = document.getElementById('bulkMajorOnly').checked;
+  // 片方だけの入力も許容（単年指定として扱う）
+  const yFrom = isNaN(from) ? (isNaN(to) ? null : to) : from;
+  const yTo   = isNaN(to)   ? (isNaN(from) ? null : from) : to;
+  if(yFrom === null) return [];
+  const lo = Math.min(yFrom, yTo), hi = Math.max(yFrom, yTo);
+  return getAllDynasties().filter(d => {
+    if(majorOnly && !d.major) return false;
+    // 範囲内の少なくとも1年に存在していればOK
+    for(let y = lo; y <= hi; y++){
+      if(dynExistsInYear(d, y)) return true;
+    }
+    return false;
+  });
+}
+
+function previewBulk(){
+  const candidates = getBulkCandidates();
+  const el = document.getElementById('bulkPreview');
+  const hasInput = document.getElementById('bulkYearFrom').value || document.getElementById('bulkYearTo').value;
+  if(!hasInput){ el.textContent = ''; return; }
+  if(!candidates.length){ el.textContent = '該当なし'; return; }
+  el.textContent = '\u2192 ' + candidates.map(d => d.name).join('\u3001');
+}
+
+function addBulkDyns(){
+  const candidates = getBulkCandidates();
+  if(!candidates.length) return;
+  candidates.forEach(d => selectedDynIds.add(d.id));
+  syncCols();
+  renderDynSelector();
+  updateTable();
+  const fromVal = parseInt(document.getElementById('bulkYearFrom').value);
+  document.getElementById('bulkYearFrom').value = '';
+  document.getElementById('bulkYearTo').value = '';
+  document.getElementById('bulkPreview').textContent = '';
+  // 開始年の行にスクロール
+  if(!isNaN(fromVal)){
+    requestAnimationFrame(() => {
+      const wrap = document.getElementById('tableWrap');
+      const target = wrap.querySelector(`td.sticky-col[data-year="${fromVal}"]`);
+      if(target){
+        var thead = document.querySelector('#cmpTable thead');
+        var theadH = thead ? thead.offsetHeight : 0;
+        wrap.scrollTop = target.closest('tr').offsetTop - theadH;
+      }
+    });
+  }
+}
+
+/* ═══════════════════════════ 史書データ ═══════════════════════════
+   各史書について、年→表示文字列を返す関数を定義。
+   CHRONICLES配列に追加していくだけで tooltip に表示される。
+   例: { name:"春秋左氏伝", fn: y => { ... return "隠公元年" or null } }
+════════════════════════════════════════════════════════════════════ */
+function showChronicleTooltip(y, cell){
+  const lines = chronicleLabel(y);
+  const tip = document.getElementById('chronicleTip');
+  if(!tip) return;
+  if(!lines.length){ tip.style.display='none'; return; }
+  tip.innerHTML = lines.map(function(l){
+    return '<div>' + l.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</div>';
+  }).join('');
+  tip.style.display = 'block';
+  const rect = cell.getBoundingClientRect();
+  const left = Math.min(
+    rect.left + rect.width / 2 - tip.offsetWidth / 2,
+    window.innerWidth - tip.offsetWidth - 8
+  );
+  const top = rect.top - tip.offsetHeight - 8;
+  tip.style.left = Math.max(4, left) + 'px';
+  tip.style.top  = top + 'px';
+}
+function hideChronicleTooltip(){
+  const tip = document.getElementById('chronicleTip');
+  if(tip) tip.style.display = 'none';
+}
+
+
+function syncCols(){
+  const newOrder = [];
+  // 既存順を維持しつつ消えたものを除去
+  columnOrder.forEach(col => {
+    if(col.type === 'dynasty' && selectedDynIds.has(col.id)) newOrder.push(col);
+    if(col.type === 'person'  && people.find(p => p.id === col.id)) newOrder.push(col);
+  });
+  // 新規追加\uff08末尾へ\uff09— Set の iteration 順\uff08追加順\uff09を使う
+  selectedDynIds.forEach(id => {
+    if(!newOrder.find(c => c.type === 'dynasty' && c.id === id))
+      newOrder.push({type:'dynasty', id});
+  });
+  people.forEach(p => {
+    if(!newOrder.find(c => c.type === 'person' && c.id === p.id))
+      newOrder.push({type:'person', id: p.id});
+  });
+  columnOrder = newOrder;
+}
+
+function moveCol(colId, colType, dir){
+  syncCols();
+  // idは文字列・数値混在のため文字列比較で統一
+  const idx = columnOrder.findIndex(c => String(c.id) === String(colId) && c.type === colType);
+  if(idx < 0) return;
+  const t = idx + dir;
+  if(t < 0 || t >= columnOrder.length) return;
+  [columnOrder[idx], columnOrder[t]] = [columnOrder[t], columnOrder[idx]];
+  updateTable();
+}
+
+/* ═══════════════════════════ テーブル ═══════════════════════════ */
+function eraEndYear(dynasty, era){
+  if(era.end !== undefined && era.end !== "") return era.end;
+  const idx = dynasty.eras.indexOf(era);
+  for(let i = idx+1; i < dynasty.eras.length; i++){
+    if(dynasty.eras[i].start !== "") return dynasty.eras[i].start - 1;
+  }
+  return null;
+}
+function erasForYear(dynasty, y){
+  return dynasty.eras.filter(e => {
+    if(e.start === "" || isNaN(e.start)) return false;
+    const end = eraEndYear(dynasty, e);
+    const inRange = end === null ? y >= e.start : y >= e.start && y <= end;
+    if(!inRange) return false;
+    // displayFrom が設定されている場合、その年より前は表示しない
+    if(e.displayFrom !== undefined && y < e.displayFrom) return false;
+    return true;
+  });
+}
+function eraNen(era, y, dynasty){
+  // 同名元号が複数ある場合は最初のstartを基準にする
+  let baseStart = era.start;
+  if(dynasty){
+    const sameNames = dynasty.eras.filter(e => e.name === era.name && e.start !== "" && !isNaN(e.start));
+    if(sameNames.length > 1) baseStart = Math.min(...sameNames.map(e => e.start));
+  }
+  let d = y - baseStart;
+  if(baseStart < 0 && y > 0) d--;
+  return d + 1;
+}
+
+/* ある年の前の年\uff080スキップ\uff09の君主名を返す\uff08君主交代判定用\uff09 */
+function prevRuler(dynasty, y){
+  const py = y === 1 ? -1 : y - 1;
+  const prev = erasForYear(dynasty, py);
+  if(!prev.length) return null;
+  return prev[prev.length - 1].ruler;
+}
+
+/* visCols の順序で rulerRow の各セルに君主名を設定する */
+function updateRulerRow(visCols, activeDyns){
+  const rulerRow = document.getElementById('rulerRow');
+  if(!rulerRow) return;
+  const wrap = document.getElementById('tableWrap');
+
+  // 1行目の高さを実測して2行目の sticky top を合わせる
+  const row1 = document.getElementById('headerRow');
+  if(row1){
+    const h1 = row1.getBoundingClientRect().height;
+    rulerRow.querySelectorAll('th').forEach(th => th.style.top = Math.round(h1) + 'px');
+  }
+
+  // スクロール位置から「tbody の最上部に見えている tr」を特定
+  const tbody = document.getElementById('tableBody');
+  if(!tbody){ return; }
+  const wrapRect = wrap.getBoundingClientRect();
+  const theadH = (row1 ? row1.getBoundingClientRect().height : 28)
+               + (rulerRow.getBoundingClientRect().height || 18);
+
+  // tbody の全 tr を走査して、wrapのスクロール領域内の最上段を探す
+  let topTr = null;
+  for(const tr of tbody.querySelectorAll('tr')){
+    const rect = tr.getBoundingClientRect();
+    // tr の下端がヘッダーより下にある最初の行
+    if(rect.bottom > wrapRect.top + theadH){
+      topTr = tr;
+      break;
+    }
+  }
+
+  // topTr の各列セルから data-ruler 属性を読む
+  const cells = rulerRow.querySelectorAll('th:not(.sticky-col)');
+  cells.forEach((th, ci) => {
+    const col = visCols[ci];
+    if(!col || col.type !== 'dynasty'){ th.textContent = ''; return; }
+    if(!topTr){ th.textContent = ''; return; }
+    // tbody の td は sticky-col が先頭なので ci+1
+    const td = topTr.querySelectorAll('td')[ci + 1];
+    th.textContent = td ? (td.getAttribute('data-ruler') || '') : '';
+  });
+}
+
+/* グローバルに visCols を保持してスクロール時に再利用 */
+let _visCols = [];
+let _activeDyns = [];
+
+function updateTable(){
+  syncCols();
+  const body = document.getElementById('tableBody');
+  const hdr  = document.getElementById('headerRow');
+  const rrow = document.getElementById('rulerRow');
+
+  const vpMap = {};
+  people.forEach(p => {
+    const cnt = [p.birth,p.death,p.age].filter(v => v !== "" && !isNaN(v)).length;
+    if(cnt >= 2 && !p.error) vpMap[p.id] = p;
+  });
+
+  const activeDyns = [...selectedDynIds].map(id => getDynById(id)).filter(Boolean);
+  _activeDyns = activeDyns;
+
+  const visCols = columnOrder.filter(col => {
+    if(col.type === 'dynasty') return activeDyns.find(d => d.id === col.id);
+    if(col.type === 'person')  return vpMap[col.id];
+    return false;
+  });
+  _visCols = visCols;
+
+  if(!visCols.length){
+    body.innerHTML = '';
+    hdr.innerHTML  = '<th class="sticky-col">年 / 干支</th>';
+    rrow.innerHTML = '<th class="sticky-col">— 君主 —</th>';
+    return;
+  }
+
+  // 年範囲
+  let allY = [];
+  Object.values(vpMap).forEach(p => {
+    if(p.birth !== "") allY.push(p.birthUnknown ? p.birth-15 : p.birth);
+    if(p.death !== "") allY.push(p.isAfter ? p.death+5 : p.death);
+  });
+  activeDyns.forEach(d => d.eras.forEach(e => {
+    if(e.start !== "") allY.push(e.start);
+    const en = eraEndYear(d, e); if(en !== null && en !== "") allY.push(en);
+  }));
+  if(!allY.length){
+    body.innerHTML=''; hdr.innerHTML='<th class="sticky-col">年 / 干支</th>';
+    rrow.innerHTML='<th class="sticky-col">— 君主 —</th>'; return;
+  }
+
+  let sy = Math.min(...allY)-1, ey = Math.max(...allY)+1;
+  if(sy === 0) sy = -1; if(ey === 0) ey = 1;
+
+  // ── ヘッダー1行目 ──
+  hdr.innerHTML = '<th class="sticky-col">年 / 干支</th>' + visCols.map((col,ci) => {
+    const isF = ci===0, isL = ci===visCols.length-1;
+    // idを安全にシングルクォート文字列としてonclickに埋め込む
+    const safeId = String(col.id).replace(/'/g, "\\'");
+    const ml = isF ? '' : `<button class="col-mv" onclick="event.stopPropagation();moveCol('${safeId}','${col.type}',-1)">◀</button>`;
+    const mr = isL ? '' : `<button class="col-mv" onclick="event.stopPropagation();moveCol('${safeId}','${col.type}',1)">▶</button>`;
+    if(col.type === 'dynasty'){
+      const d = activeDyns.find(dd => dd.id === col.id);
+      return `<th><div class="col-hdr">${ml}<span style="color:${d.color};font-weight:700;">${x(d.name)}</span>${mr}</div></th>`;
+    } else {
+      const p = vpMap[col.id];
+      return `<th><div class="col-hdr">${ml}<span>${x(p.name)}</span>${mr}</div></th>`;
+    }
+  }).join('');
+
+  // ── ヘッダー2行目\uff08初期値は空、スクロールで更新\uff09 ──
+  rrow.innerHTML = '<th class="sticky-col">— 君主 —</th>'
+    + visCols.map(col => `<th></th>`).join('');
+
+  // 1行目高さに合わせて2行目 sticky top を設定
+  requestAnimationFrame(() => {
+    const h1 = hdr.getBoundingClientRect().height;
+    rrow.querySelectorAll('th').forEach(th => th.style.top = h1 + 'px');
+    updateRulerRow(visCols, activeDyns);
+  });
+
+  // ── 行生成 ──
+  let rows = '';
+  for(let y = sy; y <= ey; y++){
+    if(y === 0) continue;
+    const yl = y > 0 ? `${y}年` : `前${Math.abs(y)}年`;
+    let cells = `<td class="sticky-col" data-year="${y}">${yl}<br><small style="opacity:.55;">${eto(y)}</small></td>`;
+
+    visCols.forEach(col => {
+      if(col.type === 'dynasty'){
+        const d = activeDyns.find(dd => dd.id === col.id);
+        const eras = erasForYear(d, y);
+        if(!eras.length){ cells += '<td data-ruler=""></td>'; return; }
+
+        const noteEntry = (d.notes || []).find(n => n.year === y);
+        const noteDot   = noteEntry ? '<span class="note-dot"></span>' : '';
+        const noteAttr  = noteEntry
+          ? `data-note="${x(noteEntry.text)}" data-label="${x(d.name)} ${yl}"`
+          : '';
+        const noteClass = noteEntry ? ' has-note' : '';
+
+        // noEra フラグ判定（全eraがnoEraの場合はグレー表示）
+        if(eras.length === 1){
+          const era    = eras[0];
+          const eraIdx = d.eras.indexOf(era);
+          const baseColor = era.noEra ? '#808080' : d.color;
+          const bg     = eraIdx%2===0 ? hexAlpha(baseColor,.22) : hexAlpha(baseColor,.08);
+          const nen    = eraNen(era, y, d);
+          const nenStr = nen===1 ? '元年' : `${nen}年`;
+
+          cells += `<td class="era-td${noteClass}"
+            style="background:${bg};"
+            data-ruler="${x(era.ruler)}" ${noteAttr}>
+            <div class="era-inner">
+              <span class="era-name">${x(era.name)}${noteDot}</span>
+              <span class="era-nen">${nenStr}</span>
+            </div>
+          </td>`;
+
+        } else {
+          // 複数元号年：linear-gradientで背景等分割、テキストは通常フロー
+          const n   = eras.length;
+          const pct = 100 / n;
+
+          const stops = [];
+          eras.forEach((era, i) => {
+            const eraIdx = d.eras.indexOf(era);
+            const baseColor = era.noEra ? '#808080' : d.color;
+            const bg = eraIdx%2===0 ? hexAlpha(baseColor,.22) : hexAlpha(baseColor,.08);
+            stops.push(`${bg} ${(i*pct).toFixed(3)}%`);
+            stops.push(`${bg} ${((i+1)*pct).toFixed(3)}%`);
+          });
+          const gradBg = `linear-gradient(to bottom, ${stops.join(',')})`;
+
+          const blocksHtml = eras.map((era, i) => {
+            const nen    = eraNen(era, y, d);
+            const nenStr = nen===1 ? '元年' : `${nen}年`;
+            return `<div class="multi-era-block">`
+              + `<span class="multi-era-name">${x(era.name)}</span>`
+              + `<span class="multi-era-nen"> ${nenStr}</span>`
+              + `</div>`;
+          }).join('');
+
+          cells += `<td class="era-td multi${noteClass}"
+            style="background:${gradBg};${noteEntry?'cursor:pointer;':''}"
+            data-ruler="${x(eras[eras.length-1].ruler)}" data-multi-n="${n}" ${noteAttr}>`
+            + blocksHtml
+            + (noteEntry?`<span class="note-dot" style="position:absolute;top:2px;right:3px;"></span>`:'')
+            + `</td>`;
+        }
+
+      } else {
+        // 人物列
+        const p = vpMap[col.id];
+        let content = '';
+        let isAfterFade = false;
+
+        if(p.birthUnknown){
+          const preStart = p.birth !== "" ? p.birth - 15 : p.death - 15;
+          const isFade   = p.birth !== "" && y >= preStart && y < p.birth;
+          const inRange  = y >= preStart && y <= p.death;
+          if(inRange){
+            if(y === p.death){
+              content = `<small style="color:var(--danger);">没</small>`;
+            } else {
+              const nenMae = ydiff(y, p.death);
+              const label  = `没前${nenMae}年`;
+              content = isFade
+                ? `<span style="color:var(--faded);">${label}</span>`
+                : label;
+            }
+            isAfterFade = isFade;
+          }
+        } else {
+          const diff = ydiff(p.birth, y);
+          const man  = diff;
+          const kaz  = diff + 1;
+          if(y === p.birth){
+            content = `1(0)歳 <small style="color:#3660ad;">生</small>`;
+          } else if(y > p.birth){
+            const pastD = p.death !== "" && !isNaN(p.death);
+            if(!pastD || y <= p.death){
+              content = `${kaz}(${man})歳`;
+            } else if(p.isAfter){
+              const lim = p.death+6+(p.death<0 && p.death+6>=0 ? 1 : 0);
+              if(y <= lim) content = y===lim ? '…' : `<span style="color:var(--faded);">${kaz}(${man})歳</span>`;
+            }
+          }
+          if(p.death !== "" && y === p.death && !p.isAfter)
+            content += ` <small style="color:var(--danger);">没</small>`;
+          isAfterFade = p.isAfter && p.death !== "" && y > p.death
+            && y <= p.death+6+(p.death<0&&p.death+6>=0?1:0);
+        }
+        const personBg = (content && p.color && p.color !== '#ffffff')
+          ? `background:${hexAlpha(p.color, isAfterFade ? .12 : .28)};`
+          : '';
+        const pNote = (p.notes || []).find(n => n.year === y);
+        const pNoteAttr = pNote
+          ? `data-note="${x(pNote.text)}" data-label="${x(p.name)} ${yl}"` : '';
+        const pNoteDot  = pNote ? '<span class="note-dot"></span>' : '';
+        cells += `<td style="${personBg}" ${pNoteAttr}>${content}${pNoteDot}</td>`;
+      }
+    });
+    rows += `<tr>${cells}</tr>`;
+  }
+  body.innerHTML = rows;
+
+  // ── 末尾スペーサー：最終行を最上部までスクロールできるよう ──
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const wrap    = document.getElementById('tableWrap');
+    const spacer  = document.getElementById('tableBottomSpacer');
+    const theadH  = document.getElementById('cmpTable').querySelector('thead').offsetHeight;
+    const wrapH   = wrap.clientHeight;
+    // ラッパーの可視高さ からヘッダー高さを引いた分だけ余白を作る
+    const pad = Math.max(0, wrapH - theadH);
+    spacer.style.height = pad + 'px';
+  }));
+
+  // 描画後に rulerRow を初期更新 + 複数元号セルの高さ均等化
+  requestAnimationFrame(() => {
+    updateRulerRow(_visCols, _activeDyns);
+    fixMultiEraCells();
+  });
+}
+
+/* ═══════════════════════════ ノートパネル ═══════════════════════════ */
+var _notePanelOpen = false;
+
+function toggleNotePanel(){
+  var panel = document.getElementById('notePanel');
+  if(!panel) return;
+  _notePanelOpen = !_notePanelOpen;
+  if(_notePanelOpen){ panel.classList.add('open'); }
+  else              { panel.classList.remove('open'); }
+}
+
+function showPopup(note, label){
+  var popTitle = document.getElementById('popTitle');
+  var popBody  = document.getElementById('popBody');
+  var empty    = document.getElementById('notePanelEmpty');
+  if(!popTitle || !popBody || !empty) return;
+  popTitle.textContent = label;
+  popBody.innerHTML    = note;
+  popTitle.style.display = 'block';
+  popBody.style.display  = 'block';
+  empty.style.display    = 'none';
+}
+function closePopup(){
+  var popTitle = document.getElementById('popTitle');
+  var popBody  = document.getElementById('popBody');
+  var empty    = document.getElementById('notePanelEmpty');
+  if(!popTitle || !popBody || !empty) return;
+  popTitle.style.display = 'none';
+  popBody.style.display  = 'none';
+  empty.style.display    = 'block';
+}
+
+/* ═══════════════════════════ UI ═══════════════════════════ */
+function jumpToYear(){
+  var y = parseInt(document.getElementById('jumpYear').value);
+  if(isNaN(y)) return;
+  var wrap = document.getElementById('tableWrap');
+  var target = wrap.querySelector('td.sticky-col[data-year="'+y+'"]');
+  if(target){
+    var thead = document.querySelector('#cmpTable thead');
+    var theadH = thead ? thead.offsetHeight : 0;
+    var tr = target.closest('tr');
+    wrap.scrollTop = tr.offsetTop - theadH;
+  }
+}
+
+function switchTab(n){
+  const btns   = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  const tabs   = document.querySelector('.tabs');
+  const isOpen = document.getElementById('tab-'+n).classList.contains('active');
+  btns.forEach(function(b,i){ b.classList.toggle('active', !isOpen && ['persons','dynasties'][i]===n); });
+  panels.forEach(function(p){ p.classList.toggle('active', !isOpen && p.id==='tab-'+n); });
+  // 全タブ閉時は.tabs に collapsed クラスを付けて下余白を確保
+  if(tabs) tabs.classList.toggle('collapsed', isOpen);
+}
+
+/* ═══════════════════════════ util ═══════════════════════════ */
+function x(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function hexAlpha(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
+
+/* closest の代替：node から祖先を辿って条件に合う要素を返す */
+function _findAncestor(el, testFn) {
+  var node = el;
+  while (node && node.nodeType === 1) {
+    if (testFn(node)) return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+function _closestTr(el) {
+  return _findAncestor(el, function(n){ return n.tagName === 'TR'; });
+}
+function _closestDataNote(el) {
+  return _findAncestor(el, function(n){ return n.getAttribute && n.getAttribute('data-note') !== null; });
+}
+
+/* ═══════════════════════════ init (DOM ready 後に実行) ═══════════════════════════ */
+function _init(){
+  var tableWrap = document.getElementById('tableWrap');
+  if(tableWrap){
+    /* スクロールで rulerRow を更新 */
+    tableWrap.addEventListener('scroll', function(){
+      updateRulerRow(_visCols, _activeDyns);
+    }, {passive: true});
+
+    /* イベント委譲：行ホバー (CSS :hover の代わりにJSで制御) */
+    var _hoverTr = null;
+    tableWrap.addEventListener('mouseover', function(e){
+      var el = e.target || e.srcElement;
+      var tr = _closestTr(el);
+      // 西暦セル（sticky-col）ホバー時に史書tooltip表示
+      var yearTd = el.classList && el.classList.contains('sticky-col') ? el
+                 : (el.parentElement && el.parentElement.classList && el.parentElement.classList.contains('sticky-col') ? el.parentElement : null);
+      if(yearTd && yearTd.hasAttribute('data-year')){
+        showChronicleTooltip(parseInt(yearTd.getAttribute('data-year')), yearTd);
+      } else {
+        hideChronicleTooltip();
+      }
+      if(tr !== _hoverTr){
+        if(_hoverTr) _hoverTr.classList.remove('row-hover');
+        _hoverTr = tr;
+        if(tr) tr.classList.add('row-hover');
+        // ホバー行の君主名をrulerRowに表示
+        if(tr){
+          var allTds = tr.querySelectorAll('td:not(.sticky-col)');
+          var rulerRow = document.getElementById('rulerRow');
+          var ths = rulerRow ? rulerRow.querySelectorAll('th:not(.sticky-col)') : [];
+          ths.forEach(function(th, i){
+            var td = allTds[i];
+            th.textContent = (td && td.getAttribute('data-ruler')) || '';
+          });
+        } else {
+          updateRulerRow(_visCols, _activeDyns);
+        }
+      }
+
+      /* ノートパネル: data-note セルにホバーしたら表示 */
+      var td = _closestDataNote(el);
+      if(td){
+        showPopup(td.getAttribute('data-note'), td.getAttribute('data-label'));
+      } else {
+        closePopup();
+      }
+    }, {passive: true});
+
+    tableWrap.addEventListener('mouseleave', function(){
+      if(_hoverTr){ _hoverTr.classList.remove('row-hover'); _hoverTr = null; }
+      closePopup();
+      hideChronicleTooltip();
+      // ホバー解除時はスクロール位置基準に戻す
+      updateRulerRow(_visCols, _activeDyns);
+    }, {passive: true});
+  }
+
+  renderPersons();
+  renderDynSelector();
+  renderPresetList();
+  updateTable();
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', _init);
+} else {
+  _init();
+}
+</script>
+</body>
+</html>
