@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic" rel="stylesheet">
+<title>年齢データ編集</title>
+<link rel="stylesheet" href="../header.css">
+<style>
+:root {
+  --accent:   #1a1d24;
+  --accent-s: #699ae0;
+  --danger:   #c0392b;
+  --bg:       #ffffff;
+  --surface:  #f7f8fc;
+  --border:   #dde2f0;
+  --text:     #1a1d2e;
+  --text-sub: #6b7280;
+  --radius:   6px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Zen Maru Gothic', sans-serif;
+}
+
+#container {
+  background: var(--bg);
+  color: var(--text);
+  padding: 24px 20px 48px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#tool-h1 {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: var(--accent);
+  border-left: 4px solid var(--accent-s);
+  padding-left: 10px;
+  margin-bottom: 20px;
+  letter-spacing: .03em;
+}
+
+/* ── セクション共通 ── */
+.section-title {
+  font-size: .75em;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 8px;
+}
+
+/* ── 編集フォーム ── */
+.edit-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: -12px;
+}
+.form-row > * {
+  margin-right: 12px;
+  margin-bottom: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field label {
+  font-size: .72em;
+  font-weight: 600;
+  color: var(--text-sub);
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-size: .9em;
+  background: #fff;
+  color: var(--text);
+  transition: border .15s;
+  height: 32px;
+}
+.field input[type="text"]:focus,
+.field input[type="number"]:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent-s);
+  box-shadow: 0 0 0 2px rgba(105,154,224,.2);
+}
+
+.field input[name="name"]  { width: 110px; }
+.field input[name="birth"] { width: 72px; }
+.field input[name="death"] { width: 72px; }
+.field input[name="age"]   { width: 60px; }
+
+.field select#sel-era   { width: 140px; }
+.field select#sel-state { width: 140px; }
+
+/* color field */
+.color-field {
+  display: flex;
+  flex-direction: column;
+}
+.color-field label {
+  font-size: .72em;
+  font-weight: 600;
+  color: var(--text-sub);
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+.color-wrap {
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+.color-wrap input[type="color"] {
+  margin-right: 6px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px;
+  cursor: pointer;
+  background: #fff;
+}
+.color-wrap input[type="text"] {
+  width: 82px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-size: .9em;
+  height: 32px;
+  font-family: monospace;
+}
+.color-wrap input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent-s);
+  box-shadow: 0 0 0 2px rgba(105,154,224,.2);
+}
+
+/* isAfter checkbox */
+.check-field {
+  display: flex;
+  flex-direction: column;
+}
+.check-field label.top {
+  font-size: .72em;
+  font-weight: 600;
+  color: var(--text-sub);
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+.check-wrap {
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+.check-wrap input[type="checkbox"] {
+  width: 15px; height: 15px;
+  accent-color: var(--accent);
+  margin-right: 5px;
+}
+.check-wrap label { font-size: .85em; }
+
+/* error */
+.error-msg {
+  color: var(--danger);
+  font-size: .72em;
+  margin-top: 6px;
+}
+
+/* form buttons row */
+.form-btns {
+  display: flex;
+  margin-top: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.form-btns > * {
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+
+.btn {
+  padding: 7px 18px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-size: .88em;
+  font-weight: 600;
+  transition: .15s;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent-s); }
+.btn-clear {
+  background: #fff;
+  color: var(--text-sub);
+  border: 1px solid var(--border);
+}
+.btn-clear:hover { background: var(--surface); }
+
+/* ── ファイル操作 ── */
+.file-row {
+  display: flex;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.file-row > * {
+  margin-right: 8px;
+  margin-bottom: 6px;
+}
+.btn-file {
+  background: var(--accent-s);
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-size: .88em;
+  font-weight: 600;
+  transition: .15s;
+}
+.btn-file:hover { background: #abc4e3; }
+
+.btn-export {
+  background: var(--accent-s);
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-size: .88em;
+  font-weight: 600;
+  transition: .15s;
+}
+.btn-export:hover { background: #abc4e3; }
+
+#importInput { display: none; }
+
+.file-note {
+  font-size: .75em;
+  color: var(--text-sub);
+}
+
+/* ── テーブルヘッダー行（件数＋検索） ── */
+.table-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.search-wrap input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  font-size: .85em;
+  width: 200px;
+  height: 30px;
+  color: var(--text);
+  background: #fff;
+  transition: border .15s;
+}
+.search-wrap input:focus {
+  outline: none;
+  border-color: var(--accent-s);
+  box-shadow: 0 0 0 2px rgba(105,154,224,.2);
+}
+#filtered-note {
+  font-size: .85em;
+  color: var(--accent-s);
+  font-weight: 400;
+  margin-left: 6px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── テーブル ── */
+.table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+  max-height: 90vh;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  background: #fff;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: .75em;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 9px 10px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 2px solid var(--accent-s);
+  z-index: 5;
+}
+
+tbody tr {
+  cursor: default;
+  transition: background .1s;
+}
+tbody tr:hover td { background: #ebf1fd; }
+tbody tr:nth-child(even) td { background: #f9fafd; }
+tbody tr:nth-child(even):hover td { background: #ebf1fd; }
+
+td {
+  padding: 7px 10px;
+  font-size: .85em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.td-color {
+  width: 56px;
+  text-align: center;
+}
+.color-swatch {
+  display: inline-block;
+  width: 52px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  font-size: .7em;
+  line-height: 20px;
+  text-align: center;
+  font-family: monospace;
+  letter-spacing: .02em;
+  vertical-align: middle;
+}
+
+.td-del { width: 44px; text-align: center; }
+.btn-del {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: .78em;
+  cursor: pointer;
+  transition: .12s;
+}
+.btn-del:hover { background: var(--danger); color: #fff; }
+
+.td-edit { width: 50px; text-align: center; }
+.btn-edit {
+  background: none;
+  border: 1px solid var(--accent-s);
+  color: var(--accent-s);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: .78em;
+  cursor: pointer;
+  transition: .12s;
+}
+.btn-edit:hover { background: var(--accent-s); color: #fff; }
+
+.empty-msg {
+  text-align: center;
+  color: var(--text-sub);
+  padding: 28px;
+  font-size: .88em;
+}
+</style>
+</head>
+<script src="../header.js" data-curent="index"></script>
+<body>
+<div id="site-header"></div>
+<div id="container">
+<div id="tool-h1">年齢データ編集</div>
+
+<!-- ファイル操作 -->
+<div class="file-row">
+  <button class="btn-file" onclick="document.getElementById('importInput').click()">読み込み</button>
+  <button class="btn-export" onclick="exportJSON()">書き出し</button>
+  <input type="file" id="importInput" accept=".json" multiple onchange="importJSON(event)">
+</div>
+
+<!-- 編集フォーム -->
+<div class="edit-panel">
+  <div class="section-title">人物を追加 / 編集</div>
+  <div class="form-row">
+
+    <div class="field">
+      <label>名前 *</label>
+      <input type="text" name="name" id="f-name" placeholder="例: 曹操">
+    </div>
+
+    <div class="field">
+      <label>生年 *</label>
+      <input type="number" name="birth" id="f-birth" placeholder="155">
+    </div>
+
+    <div class="field">
+      <label>没年 *</label>
+      <input type="number" name="death" id="f-death" placeholder="220">
+    </div>
+
+    <div class="field">
+      <label>享年（数え年） *</label>
+      <input type="number" name="age" id="f-age" placeholder="-">
+    </div>
+
+    <div class="field">
+      <label>時代</label>
+      <select id="sel-era" onchange="onEraChange()">
+        <option value="">── 時代を選択 ──</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>国 / 王朝</label>
+      <select id="sel-state">
+        <option value="">── 国を選択 ──</option>
+      </select>
+    </div>
+
+    <div class="color-field">
+      <label>カラー</label>
+      <div class="color-wrap">
+        <input type="color" id="f-colorpicker" value="#ffffff" oninput="onPickerChange(this.value)">
+        <input type="text" id="f-colortext" value="" placeholder="#rrggbb" maxlength="7" oninput="onTextChange(this.value)">
+      </div>
+    </div>
+
+    <div class="check-field">
+      <div class="check-wrap" style="margin-top:4px;">
+        <input type="checkbox" id="f-birthUnknown" onchange="onUnknownChange('birthUnknown')">
+        <label for="f-birthUnknown">生年不詳</label>
+      </div>
+    </div>
+    <div class="check-field">
+      <div class="check-wrap">
+        <input type="checkbox" id="f-isAfter" onchange="onUnknownChange('isAfter')">
+        <label for="f-isAfter">没年不詳</label>
+      </div>
+    </div>
+
+  </div>
+  <div id="form-error" class="error-msg"></div>
+  <div class="form-btns">
+    <button class="btn btn-primary" onclick="addEntry()">＋ 追加</button>
+    <button class="btn btn-clear" onclick="clearForm(false)">クリア</button>
+  </div>
+</div>
+
+<!-- テーブル -->
+<div class="table-header-row">
+  <div class="section-title" style="margin-bottom:0;">登録データ（<span id="count">0</span> 件）<span id="filtered-note"></span></div>
+  <div class="search-wrap">
+    <input type="text" id="searchBox" placeholder="🔍 検索…" oninput="renderTable()">
+  </div>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>名前</th>
+        <th>生年</th>
+        <th>没年</th>
+        <th>享年</th>
+        <th>時代</th>
+        <th>国 / 王朝</th>
+        <th>カラー</th>
+        <th>備考</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tBody"></tbody>
+  </table>
+</div>
+
+</div>
+<script>
+/* ═══════════════════════════════════════════
+   時代・国データ
+═══════════════════════════════════════════ */
+const DYNASTIES = [
+  { era: "春秋戦国", eraKey: "zhou", states: [
+    { key: "eastern_zhou", label: "東周" },
+    { key: "jiang_qi", label: "姜斉" },
+    { key: "chen", label: "陳" },
+    { key: "tian_qi", label: "田斉" },
+    { key: "jin", label: "晋" },
+    { key: "zhao", label: "趙" },
+    { key: "wei", label: "魏" },
+    { key: "han", label: "韓" },
+    { key: "lu", label: "魯" },
+    { key: "song", label: "宋" },
+    { key: "zheng", label: "鄭" },
+    { key: "wey", label: "衛" },
+    { key: "chu", label: "楚" },
+    { key: "wu", label: "呉" },
+    { key: "yue", label: "越" },
+    { key: "yan", label: "燕" },
+    { key: "qin", label: "秦" },
+  ]},
+  { era: "漢", eraKey: "han_dynasty", states: [
+    { key: "western_han", label: "前漢" },
+    { key: "xin_dynasty", label: "新" },
+    { key: "eastern_han", label: "後漢" },
+  ]},
+  { era: "三国", eraKey: "three_kingdoms", states: [
+    { key: "cao_wei", label: "曹魏" },
+    { key: "shu_han", label: "蜀漢" },
+    { key: "eastern_wu", label: "孫呉" },
+  ]},
+  { era: "両晋\u30fb五胡十六国", eraKey: "sixteen_kingdoms", states: [
+    { key: "western_jin", label: "西晋" },
+    { key: "eastern_jin", label: "東晋" },
+    { key: "former_zhao", label: "前趙" },
+    { key: "later_zhao", label: "後趙" },
+    { key: "former_qin", label: "前秦" },
+    { key: "later_qin", label: "後秦" },
+    { key: "western_qin", label: "西秦" },
+    { key: "hu_xia", label: "夏" },
+    { key: "former_yan", label: "前燕" },
+    { key: "western_yan", label: "西燕" },
+    { key: "later_yan", label: "後燕" },
+    { key: "southern_yan", label: "南燕" },
+    { key: "northern_yan", label: "北燕" },
+    { key: "former_liang", label: "前涼" },
+    { key: "later_liang", label: "後涼" },
+    { key: "southern_liang", label: "南涼" },
+    { key: "western_liang", label: "西涼" },
+    { key: "northern_liang", label: "北涼" },
+    { key: "cheng_han", label: "成漢" },
+    { key: "tuoba_dai", label: "代" },
+  ]},
+  { era: "南北朝", eraKey: "northern_and_southern", states: [
+    { key: "liu_song", label: "宋" },
+    { key: "southern_qi", label: "斉" },
+    { key: "xiao_liang", label: "梁" },
+    { key: "southern_chen", label: "陳" },
+    { key: "northern_wei", label: "北魏" },
+    { key: "eastern_wei", label: "東魏" },
+    { key: "western_wei", label: "西魏" },
+    { key: "northern_qi", label: "北斉" },
+    { key: "northern_zhou", label: "北周" },
+    { key: "sui_dynasty", label: "隋" },
+  ]},
+  { era: "唐", eraKey: "tang_dynasty", states: [
+    { key: "tang_dynasty", label: "唐" },
+    { key: "wu_zhou", label: "武周" },
+    { key: "anshi_yan", label: "燕" },
+  ]},
+  { era: "五代十国", eraKey: "five_and_ten", states: [
+    { key: "zhu_liang", label: "後梁" },
+    { key: "later_tang", label: "後唐" },
+    { key: "later_jin", label: "後晋" },
+    { key: "later_han", label: "後漢" },
+    { key: "later_zhou", label: "後周" },
+    { key: "yang_wu", label: "呉" },
+    { key: "southern_tang", label: "南唐" },
+    { key: "wu_yue", label: "呉越" },
+    { key: "ma_chu", label: "楚" },
+    { key: "min", label: "閩" },
+    { key: "southern_han", label: "南漢" },
+    { key: "former_shu", label: "前蜀" },
+    { key: "later_shu", label: "後蜀" },
+    { key: "jingnan", label: "荊南" },
+    { key: "northern_han", label: "北漢" },
+  ]},
+  { era: "宋以降", eraKey: "since_song", states: [
+    { key: "northern_song", label: "北宋" },
+    { key: "southern_song", label: "南宋" },
+    { key: "liao_dynasty", label: "遼" },
+    { key: "western_liao", label: "西遼" },
+    { key: "jin_dynasty", label: "金" },
+    { key: "western_xia", label: "西夏" },
+    { key: "yuan_dynasty", label: "元" },
+    { key: "northern_yuan", label: "北元" },
+    { key: "ming_dynasty", label: "明" },
+    { key: "southern_ming", label: "南明" },
+    { key: "qing_dynasty", label: "清" },
+  ]},
+];
+
+/* dynasty key → label のマップ */
+const DYNASTY_LABEL = {};
+DYNASTIES.forEach(era => era.states.forEach(s => { DYNASTY_LABEL[s.key] = s.label; }));
+/* dynasty key → era の逆引き */
+const DYNASTY_ERA = {};
+DYNASTIES.forEach(era => era.states.forEach(s => { DYNASTY_ERA[s.key] = era.eraKey; }));
+
+/* ═══════════════════════════════════════════
+   セレクト初期化
+═══════════════════════════════════════════ */
+let lastStateKey = ""; // 国選択を保持
+
+function initSelects() {
+  const selEra = document.getElementById('sel-era');
+  selEra.innerHTML = '<option value="">── 時代を選択 ──</option>';
+  DYNASTIES.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.eraKey;
+    o.textContent = d.era;
+    selEra.appendChild(o);
+  });
+  updateStateSelect("");
+}
+
+function updateStateSelect(eraKey, keepKey) {
+  const sel = document.getElementById('sel-state');
+  const era = DYNASTIES.find(d => d.eraKey === eraKey);
+  sel.innerHTML = '<option value="">── 国を選択 ──</option>';
+  if (era) {
+    era.states.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.key;
+      o.textContent = s.label;
+      sel.appendChild(o);
+    });
+  }
+  if (keepKey) sel.value = keepKey;
+}
+
+function onEraChange() {
+  const eraKey = document.getElementById('sel-era').value;
+  updateStateSelect(eraKey);
+  lastStateKey = "";
+}
+
+initSelects();
+
+/* ═══════════════════════════════════════════
+   年計算
+═══════════════════════════════════════════ */
+function getYearDiff(start, end) {
+  if (start === "" || end === "" || isNaN(start) || isNaN(end)) return null;
+  let diff = end - start;
+  if (start < 0 && end > 0) diff -= 1;
+  return diff;
+}
+
+function calcAge(birth, death) {
+  const b = parseInt(birth), d = parseInt(death);
+  if (isNaN(b) || isNaN(d)) return "";
+  const diff = getYearDiff(b, d);
+  if (diff === null || diff < 0) return "";
+  return diff + 1;
+}
+
+// 3フィールドの三すくみ自動補完
+function syncFields(changed) {
+  const bEl = document.getElementById('f-birth');
+  const dEl = document.getElementById('f-death');
+  const aEl = document.getElementById('f-age');
+  const errEl = document.getElementById('form-error');
+
+  const bv = bEl.value.trim(), dv = dEl.value.trim(), av = aEl.value.trim();
+  const b = bv !== "" ? parseInt(bv) : null;
+  const d = dv !== "" ? parseInt(dv) : null;
+  const a = av !== "" ? parseInt(av) : null;
+
+  // リセット
+  bEl.style.borderColor = "";
+  dEl.style.borderColor = "";
+  aEl.style.borderColor = "";
+  errEl.textContent = "";
+
+  // 2つ入力で3つ目を補完
+  if (b !== null && d !== null && a === null) {
+    const age = calcAge(b, d);
+    if (age !== "") aEl.value = age;
+  } else if (b !== null && a !== null && d === null) {
+    // 没年 = 生年 + 享年 - 1（0年跨ぎ補正）
+    let death = b + a - 1;
+    if (b < 0 && death >= 0) death += 1;
+    dEl.value = death;
+  } else if (d !== null && a !== null && b === null) {
+    // 生年 = 没年 - 享年 + 1（0年跨ぎ補正）
+    let birth = d - a + 1;
+    if (d > 0 && birth <= 0) birth -= 1;
+    bEl.value = birth;
+  } else if (b !== null && d !== null && a !== null) {
+    // 3つ揃ったら整合チェック
+    const expected = calcAge(b, d);
+    if (expected !== a) {
+      errEl.textContent = `計算が合いません（生年と没年から算出される享年：${expected}）`;
+      document.getElementById('f-' + (changed === 'birth' ? 'birth' : changed === 'death' ? 'death' : 'age')).style.borderColor = 'var(--danger)';
+    }
+  }
+}
+
+['f-birth','f-death','f-age'].forEach(id => {
+  const field = id.replace('f-','');
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); syncFields(field); }
+  });
+});
+
+/* ═══════════════════════════════════════════
+   カラー同期
+═══════════════════════════════════════════ */
+function isValidHex(v) { return /^#[0-9a-fA-F]{6}$/.test(v); }
+
+// 「没年不詳」「生年不詳」は排他
+function onUnknownChange(changed) {
+  if (changed === 'isAfter' && document.getElementById('f-isAfter').checked) {
+    document.getElementById('f-birthUnknown').checked = false;
+  } else if (changed === 'birthUnknown' && document.getElementById('f-birthUnknown').checked) {
+    document.getElementById('f-isAfter').checked = false;
+  }
+}
+
+function onPickerChange(val) {
+  document.getElementById('f-colortext').value = val;
+}
+function onTextChange(val) {
+  const v = val.trim();
+  if (isValidHex(v)) {
+    document.getElementById('f-colorpicker').value = v;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   データ
+═══════════════════════════════════════════ */
+let entries = [];
+
+/* ═══════════════════════════════════════════
+   追加
+═══════════════════════════════════════════ */
+function addEntry() {
+  const name  = document.getElementById('f-name').value.trim();
+  const bv    = document.getElementById('f-birth').value.trim();
+  const dv    = document.getElementById('f-death').value.trim();
+  const av    = document.getElementById('f-age').value.trim();
+  const colorText = document.getElementById('f-colortext').value.trim();
+  const state = document.getElementById('sel-state').value;
+  const isAfter = document.getElementById('f-isAfter').checked;
+  const birthUnknown = document.getElementById('f-birthUnknown').checked;
+
+  const errEl = document.getElementById('form-error');
+  errEl.textContent = "";
+
+  if (!name) { errEl.textContent = "名前を入力してください。"; return; }
+
+  const filled = [bv, dv, av].filter(v => v !== "").length;
+  if (filled < 2) { errEl.textContent = "生年・没年・享年のうち2項目以上を入力してください。"; return; }
+
+  const b = bv !== "" ? parseInt(bv) : null;
+  const d = dv !== "" ? parseInt(dv) : null;
+  const a = av !== "" ? parseInt(av) : null;
+
+  if ((b !== null && isNaN(b)) || (d !== null && isNaN(d)) || (a !== null && isNaN(a))) {
+    errEl.textContent = "年の値は数値で入力してください。"; return;
+  }
+  if ((b !== null && b === 0) || (d !== null && d === 0)) {
+    errEl.textContent = "0年は存在しません。"; return;
+  }
+  if (a !== null && a < 1) { errEl.textContent = "享年は1以上にしてください。"; return; }
+
+  // 3つ目を確定補完
+  let finalB = b, finalD = d, finalA = a;
+  if (finalB === null) {
+    finalB = finalD - finalA + 1;
+    if (finalD > 0 && finalB <= 0) finalB -= 1;
+  } else if (finalD === null) {
+    finalD = finalB + finalA - 1;
+    if (finalB < 0 && finalD >= 0) finalD += 1;
+  } else if (finalA === null) {
+    finalA = calcAge(finalB, finalD);
+  }
+
+  // 整合チェック
+  const expectedAge = calcAge(finalB, finalD);
+  if (expectedAge === "" || expectedAge < 1) { errEl.textContent = "生年・没年の計算が合いません（没年 ≥ 生年）。"; return; }
+  if (finalA !== null && finalA !== expectedAge) { errEl.textContent = `計算が合いません（生年と没年から算出される享年：${expectedAge}）。`; return; }
+
+  if (colorText && !isValidHex(colorText)) {
+    errEl.textContent = "カラーは #rrggbb 形式で入力してください（例: #f44f67）"; return;
+  }
+
+  const entry = { name, birth: finalB, death: finalD };
+  if (state) entry.dynasty = state;
+  const col = colorText.toUpperCase();
+  if (col && col !== "#FFFFFF") entry.color = col.toLowerCase();
+  if (isAfter) entry.isAfter = true;
+  if (birthUnknown) entry.birthUnknown = true;
+
+  entries.push(entry);
+  lastStateKey = state;
+  clearForm(false);
+  renderTable();
+}
+
+/* ═══════════════════════════════════════════
+   フォームクリア
+═══════════════════════════════════════════ */
+function clearForm(clearState) {
+  document.getElementById('f-name').value = "";
+  document.getElementById('f-birth').value = "";
+  document.getElementById('f-death').value = "";
+  document.getElementById('f-age').value = "";
+  document.getElementById('f-birth').style.borderColor = "";
+  document.getElementById('f-death').style.borderColor = "";
+  document.getElementById('f-age').style.borderColor = "";
+  document.getElementById('f-colorpicker').value = "#ffffff";
+  document.getElementById('f-colortext').value = "";
+  document.getElementById('f-isAfter').checked = false;
+  document.getElementById('f-birthUnknown').checked = false;
+  document.getElementById('form-error').textContent = "";
+
+  if (clearState) {
+    document.getElementById('sel-era').value = "";
+    updateStateSelect("");
+    lastStateKey = "";
+  } else {
+    // 国選択を保持
+    const eraKey = lastStateKey ? DYNASTY_ERA[lastStateKey] : "";
+    if (eraKey) {
+      document.getElementById('sel-era').value = eraKey;
+      updateStateSelect(eraKey, lastStateKey);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════
+   テーブル描画
+═══════════════════════════════════════════ */
+function renderTable() {
+  const q = (document.getElementById('searchBox')?.value || "").trim().toLowerCase();
+  const body = document.getElementById('tBody');
+  const noteEl = document.getElementById('filtered-note');
+
+  document.getElementById('count').textContent = entries.length;
+
+  if (entries.length === 0) {
+    body.innerHTML = `<tr><td colspan="10" class="empty-msg">まだデータがありません。</td></tr>`;
+    noteEl.textContent = "";
+    return;
+  }
+
+  // フィルタリング：元インデックスを保持しつつ絞り込む
+  const filtered = entries.map((e, i) => ({ e, i })).filter(({ e }) => {
+    if (!q) return true;
+    const age = calcAge(e.birth, e.death);
+    const dynLabel  = e.dynasty ? (DYNASTY_LABEL[e.dynasty] || e.dynasty) : "";
+    const eraLabel  = e.dynasty && DYNASTY_ERA[e.dynasty]
+      ? (DYNASTIES.find(d => d.eraKey === DYNASTY_ERA[e.dynasty])?.era || "") : "";
+    const birthStr  = e.birth != null ? (e.birth < 0 ? '前' + Math.abs(e.birth) : String(e.birth)) : "不明";
+    const deathStr  = e.death != null ? (e.death < 0 ? '前' + Math.abs(e.death) : String(e.death)) : "不明";
+    const searchStr = [e.name, birthStr, deathStr, String(age), eraLabel, dynLabel,
+                       e.color || "",
+                       e.isAfter ? "没年不詳" : "",
+                       e.birthUnknown ? "生年不詳" : ""].join(' ').toLowerCase();
+    return searchStr.includes(q);
+  });
+
+  // 件数表示
+  if (q) {
+    noteEl.textContent = `（${filtered.length} 件表示中）`;
+  } else {
+    noteEl.textContent = "";
+  }
+
+  if (filtered.length === 0) {
+    body.innerHTML = `<tr><td colspan="10" class="empty-msg">「${escHtml(q)}」に一致するデータがありません。</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = filtered.map(({ e, i }) => {
+    const age = calcAge(e.birth, e.death);
+    const dynLabel = e.dynasty ? (DYNASTY_LABEL[e.dynasty] || e.dynasty) : "";
+    const eraLabel = e.dynasty && DYNASTY_ERA[e.dynasty]
+      ? (DYNASTIES.find(d => d.eraKey === DYNASTY_ERA[e.dynasty])?.era || "") : "";
+    const col = e.color || "";
+    const swatchStyle = col ? `background:${col};color:${contrastColor(col)};` : "background:#f0f0f0;color:#999;";
+    const swatchText = col || "なし";
+    const birthStr = e.birth != null ? (e.birth < 0 ? '前' + Math.abs(e.birth) : e.birth) : "不明";
+    const deathStr = e.death != null ? (e.death < 0 ? '前' + Math.abs(e.death) : e.death) : "不明";
+
+    const note = e.isAfter ? "没年不詳" : e.birthUnknown ? "生年不詳" : "";
+    return `<tr onclick="copyRow(${i})" title="クリックで編集欄にコピー">
+      <td class="td-edit"><button class="btn-edit" onclick="event.stopPropagation();overwriteRow(${i})">上書き</button></td>
+      <td>${escHtml(e.name)}</td>
+      <td>${birthStr}</td>
+      <td>${deathStr}</td>
+      <td>${age}</td>
+      <td>${escHtml(eraLabel)}</td>
+      <td>${escHtml(dynLabel)}</td>
+      <td class="td-color"><span class="color-swatch" style="${swatchStyle}">${swatchText}</span></td>
+      <td>${escHtml(note)}</td>
+      <td class="td-del"><button class="btn-del" onclick="event.stopPropagation();delRow(${i})">削除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function contrastColor(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114) / 1000 > 128 ? '#333' : '#fff';
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// 行クリック：フォームにコピーのみ（行は残す）
+function copyRow(i) {
+  fillForm(entries[i]);
+}
+
+// 削除ボタン
+function delRow(i) {
+  entries.splice(i, 1);
+  renderTable();
+}
+
+// 上書きボタン：編集欄の現在値で該当行を上書きして追加、編集欄はクリア
+function overwriteRow(i) {
+  const name  = document.getElementById('f-name').value.trim();
+  const bv    = document.getElementById('f-birth').value.trim();
+  const dv    = document.getElementById('f-death').value.trim();
+  const av    = document.getElementById('f-age').value.trim();
+  const colorText = document.getElementById('f-colortext').value.trim();
+  const state = document.getElementById('sel-state').value;
+  const isAfter = document.getElementById('f-isAfter').checked;
+  const birthUnknown = document.getElementById('f-birthUnknown').checked;
+
+  const errEl = document.getElementById('form-error');
+  errEl.textContent = "";
+
+  if (!name) { errEl.textContent = "名前を入力してください。"; return; }
+  const filled = [bv, dv, av].filter(v => v !== "").length;
+  if (filled < 2) { errEl.textContent = "生年・没年・享年のうち2項目以上を入力してください。"; return; }
+
+  const b = bv !== "" ? parseInt(bv) : null;
+  const d = dv !== "" ? parseInt(dv) : null;
+  const a = av !== "" ? parseInt(av) : null;
+
+  if ((b !== null && isNaN(b)) || (d !== null && isNaN(d)) || (a !== null && isNaN(a))) {
+    errEl.textContent = "年の値は数値で入力してください。"; return;
+  }
+  if ((b !== null && b === 0) || (d !== null && d === 0)) {
+    errEl.textContent = "0年は存在しません。"; return;
+  }
+  if (a !== null && a < 1) { errEl.textContent = "享年は1以上にしてください。"; return; }
+
+  let finalB = b, finalD = d, finalA = a;
+  if (finalB === null) {
+    finalB = finalD - finalA + 1;
+    if (finalD > 0 && finalB <= 0) finalB -= 1;
+  } else if (finalD === null) {
+    finalD = finalB + finalA - 1;
+    if (finalB < 0 && finalD >= 0) finalD += 1;
+  } else if (finalA === null) {
+    finalA = calcAge(finalB, finalD);
+  }
+  const expectedAge = calcAge(finalB, finalD);
+  if (expectedAge === "" || expectedAge < 1) { errEl.textContent = "生年・没年の計算が合いません。"; return; }
+  if (finalA !== null && finalA !== expectedAge) { errEl.textContent = `計算が合いません（算出享年：${expectedAge}）。`; return; }
+  if (colorText && !isValidHex(colorText)) { errEl.textContent = "カラーは #rrggbb 形式で入力してください。"; return; }
+
+  const entry = { name, birth: finalB, death: finalD };
+  if (state) entry.dynasty = state;
+  const col = colorText.toUpperCase();
+  if (col && col !== "#FFFFFF") entry.color = col.toLowerCase();
+  if (isAfter) entry.isAfter = true;
+  if (birthUnknown) entry.birthUnknown = true;
+
+  entries[i] = entry;
+  lastStateKey = state;
+  clearForm(false);
+  renderTable();
+}
+
+function fillForm(e) {
+  document.getElementById('f-name').value  = e.name;
+  document.getElementById('f-birth').value = e.birth != null ? e.birth : "";
+  document.getElementById('f-death').value = e.death != null ? e.death : "";
+  document.getElementById('f-age').value   = calcAge(e.birth, e.death);
+  document.getElementById('f-isAfter').checked = !!e.isAfter;
+  document.getElementById('f-birthUnknown').checked = !!e.birthUnknown;
+  document.getElementById('f-birth').style.borderColor = "";
+  document.getElementById('f-death').style.borderColor = "";
+  document.getElementById('f-age').style.borderColor = "";
+  document.getElementById('form-error').textContent = "";
+
+  const col = e.color || "#ffffff";
+  document.getElementById('f-colorpicker').value = col;
+  document.getElementById('f-colortext').value = e.color || "";
+
+  if (e.dynasty) {
+    const eraKey = DYNASTY_ERA[e.dynasty] || "";
+    document.getElementById('sel-era').value = eraKey;
+    updateStateSelect(eraKey, e.dynasty);
+    lastStateKey = e.dynasty;
+  } else {
+    document.getElementById('sel-era').value = "";
+    updateStateSelect("");
+    lastStateKey = "";
+  }
+}
+
+/* ═══════════════════════════════════════════
+   JSON 書き出し
+═══════════════════════════════════════════ */
+function exportJSON() {
+  if (entries.length === 0) { alert('データがありません。'); return; }
+  const lines = entries.map(e => {
+    const obj = { name: e.name, birth: e.birth, death: e.death };
+    if (e.dynasty)      obj.dynasty = e.dynasty;
+    if (e.color)        obj.color   = e.color;
+    if (e.isAfter)      obj.isAfter = true;
+    if (e.birthUnknown) obj.birthUnknown = true;
+    return JSON.stringify(obj);
+  });
+  const json = '[\n' + lines.map(l => '  ' + l).join(',\n') + '\n]';
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'age_data.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ═══════════════════════════════════════════
+   JSON 読み込み
+═══════════════════════════════════════════ */
+function importJSON(event) {
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!Array.isArray(data)) throw new Error(file.name + ': 配列形式ではありません');
+        entries = entries.concat(data.map(d => {
+          const entry = { name: String(d.name ?? ""), birth: Number(d.birth), death: Number(d.death) };
+          if (d.dynasty)      entry.dynasty = d.dynasty;
+          if (d.color)        entry.color   = d.color;
+          if (d.isAfter)      entry.isAfter = true;
+          if (d.birthUnknown) entry.birthUnknown = true;
+          return entry;
+        }));
+      } catch(err) {
+        alert('JSONの読み込みに失敗しました: ' + err.message);
+      }
+      loaded++;
+      if (loaded === files.length) renderTable();
+    };
+    reader.readAsText(file);
+  });
+  event.target.value = "";
+}
+
+/* 初期描画 */
+renderTable();
+</script>
+</body>
+</html>
